@@ -6,6 +6,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = BASE_DIR / "config"
+PROJECT_PATH = BASE_DIR
 
 SETTINGS_PATHS = [
     os.path.dirname(__file__),
@@ -121,8 +122,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
-    PROJECT_DIR / "static",
-    PROJECT_DIR / "static-transpile",
+    PROJECT_DIR / "static-lib",
+    BASE_DIR / "static-transpile",
 ]
 STATIC_ROOT = BASE_DIR / "static"
 

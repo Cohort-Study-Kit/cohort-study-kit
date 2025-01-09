@@ -62,6 +62,12 @@ pre-commit install
 ./manage.py createsuperuser
 ```
 
+5. Run server:
+```bash
+./manage.py runserver
+```
+
+
 ## Use Cases
 
 Cohort Study Kit is ideal for:

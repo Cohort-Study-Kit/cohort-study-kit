@@ -5,8 +5,7 @@ exclude: |
       .*\.csv|
       .*\.sql|
       .*\.sql-bak|
-      .*static/lib.*|
-      config/static-transpile/.*
+      .*static-lib/lib.*
   )$
 repos:
   - repo: https://github.com/psf/black

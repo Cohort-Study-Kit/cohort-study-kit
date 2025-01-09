@@ -65,22 +65,26 @@ deploy -n       # Deploy without running migrations
 To deploy updates manually, do instead:
 
 1. Pull latest code
-2. Run migrations:
+
+2. Transpile:
+```bash
+./manage.py transpile
+```
+
+3. Run migrations:
 ```bash
 ./manage.py migrate
 ```
 
-3. Collect static files:
+4. Collect static files:
 ```bash
 ./manage.py collectstatic
 ```
 
-4. Restart gunicorn:
+5. Restart gunicorn:
 ```bash
 systemctl restart django-gunicorn
 ```
-
-
 
 ## Backup
 
