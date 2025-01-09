@@ -27,6 +27,9 @@ jobs:
       - name: Check migrations
         run: |
           ./manage.py makemigrations --check --dry-run
+      - name: Transpile JavaScript
+        run: |
+          ./manage.py transpile
       - name: Run tests
         run: |
           ./manage.py test
