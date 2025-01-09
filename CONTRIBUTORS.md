@@ -4,6 +4,10 @@ Víðir Valberg Guðmundsson
 
 Alex Hemmingsen
 
+Kristoffer Linder-Steinlein
+
+Mads Østerø Nørregaard
+
 Johannes Wilm
 
 Eric Zou
