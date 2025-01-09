@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<p> <h3>
+  {% if "create" in request.path %}
+    Create New Visit
+  {% else %}
+    Update Visit Data
+  {% endif %}
+</h3></p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="container-top">
+    <div class="left-col col-sm-6">
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="proband">Proband:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="proband" name="proband" value="{{proband.name}}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="fk_visit_type">Visit type:</label>
+        </div>
+        <div class="col-sm-6">
+        <select class="form-control form-select" id="fk_visit_type" name="fk_visit_type" requried=true>
+            <option value="{{fk_visit_type.id}}">{{ fk_visit_type }}</option>
+            {% for option in visit_type_options %}
+              <option value="{{option.id}}">{{ option.name }}</option>
+            {% endfor %}
+        </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="fk_secondary_visit_type">Secondary visit:</label>
+        </div>
+        <div class="col-sm-6">
+        <select class="form-control form-select" id="fk_secondary_visit_type" name="fk_secondary_visit_type">
+            <option value="{{fk_secondary_visit_type.id}}">{{ fk_secondary_visit_type }}</option>
+            {% for option in visit_type_options %}
+              <option value="{{option.id}}">{{ option.name }}</option>
+            {% endfor %}
+        </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+          <label class="col-form-label" for="id_status">Status:</label>
+        </div>
+        <div class="col-sm-6">
+          <select class="form-control form-select" id="id_status" name="status" required="True">
+              {% for option in status_options %}
+                <option value="{{option.0}}" {% if visit.status == option.0 %}selected{% endif %}>{{ option.1 }}</option>
+              {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_visit_date">Visit date:</label>
+        </div>
+        <div class="col-sm-6">
+        <input type="date" class="form-control" id="id_visit_date" name="visit_date" value="{{visit.visit_date|date:"Y-m-d"}}" required>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_comments">Comments:</label>
+        </div>
+        <div class="col-sm-6">
+        <textarea class="form-control textarea" id="id_comments" name="comments" oninput='this.style.height = this.scrollHeight + 3 + "px"'>{{visit.comments|default_if_none:""}}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-bottom">
+    <div class="row mt-4">
+      <div class="d-grid gap-2 d-md-block mx-auto">
+        <button type="button" class="btn btn-primary" onclick="history.back()" id="back">Back</button>
+        <button type="submit" class="btn btn-primary" id="submit">Save</button>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+{% endblock %}

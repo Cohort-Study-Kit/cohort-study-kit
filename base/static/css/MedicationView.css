@@ -1,0 +1,8 @@
+.ui-autocomplete {
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.ui-widget-content {
+  background: white;
+}

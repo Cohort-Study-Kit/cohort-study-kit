@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Requried meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CSK DB Search</title>
+  <link rel="icon" type="image/png" href="{% static "img/icon/favicon-96x96.png" %}" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="{% static "img/icon/favicon.svg" %}" />
+  <link rel="shortcut icon" href="{% static "img/icon/favicon.ico" %}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static "img/icon/apple-touch-icon.png" %}" />
+  <meta name="apple-mobile-web-app-title" content="Cohort Study Kit" />
+  <link rel="manifest" href="{% static "img/icon/site.webmanifest" %}" />
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static "lib/css/bootstrap.min.5_1_3.css" %}">
+  <link rel="stylesheet" href="{% static "lib/css/bootstrap-icons.min.1_8_1.css" %}">
+  <link rel="stylesheet" href="{% static "lib/css/flatpickr.min.css" %}">
+  <link rel="stylesheet" href="{% static "lib/css/choices.min.css" %}">
+  <script src="{% static "lib/js/bootstrap.bundle.5_1_3.min.js" %}"></script>
+  <script src="{% static "js/components.js" %}"></script>
+  <link rel="stylesheet" href="{% static "css/base.css" %}">
+  <link rel="stylesheet" href="{% static "css/home.css" %}">
+  <script src="{% static "js/home.js" %}"></script>
+</head>
+
+
+<body{% if user.can_moderate %} data-can-moderate="true"{% endif %}{% if user.can_admin %} data-can-admin="true"{% endif %}>
+    <div class="copsac-topnav">
+      <div class="search-container">
+        <input id="probands" type="text" placeholder="Find Proband" autofocus tabindex="1">
+      </div>
+      {% if copsac_id %}
+        <div class="copsac" id="base-info"></div>
+      {% endif %}
+      <div class="user-dropdown">
+        Logged in as: {{user.username}} {% if user.can_admin %}(Admin){% elif user.can_moderate %}(Moderator){% endif %}
+        <div class="user-dropdown-content">
+          <a href="/accounts/logout/" id="id_logout"> Logout </a>
+        </div>
+      </div>
+    </div>
+    {% if copsac_id %}
+      <div class="container-main">
+        <div class="left-col">
+          <div id="examinations-list"></div>
+          <hr>
+          <div id="visits"></div>
+          <hr>
+          <div id="relatives-consent">
+            <div id="relatives"></div>
+            <div id="consent"></div>
+          </div>
+        </div> <!-- End of Left Col -->
+
+        <div class="mid-col">
+          <div id="reminder"></div>
+          <div id="address"></div>
+          <div id="institution"></div>
+        </div> <!-- End of Mid Col -->
+
+
+        <div class="right-col">
+          <div id="notes"></div>
+          <hr>
+          <div id="diagnosis"></div>
+          <hr>
+          <div id="medication"></div>
+        </div> <!-- End of Right Col -->
+      </div>
+
+      <div class="container-bottom">
+        <div id="cells-list"></div>
+      </div>
+    </div> <!-- End of body -->
+  {% endif %} <!-- Endif proband -->
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load transpile %}
+{% block content %}
+<link rel="stylesheet" href="{% static "css/address_overview.css" %}">
+<script src="{% static "js/address_overview.mjs" %}"></script>
+<h3>Address overview</h3>
+
+<div>
+  <a href="{% url "base:address_create_view" copsac_id=copsac_id %}" id="add-address">
+    Add address
+  </a>
+</div>
+
+
+
+<table></table>
+
+<div class="container-bottom">
+  <div class="row mt-4">
+    <div class="d-grid gap-2 d-md-block mx-auto">
+      <a href="{% url "base:proband_home" copsac_id=copsac_id %}" id="back">
+        <button type="button" class="btn btn-primary">Back</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

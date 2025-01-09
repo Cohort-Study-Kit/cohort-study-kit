@@ -1,0 +1,23 @@
+{% load i18n %}
+<div class="modal-header">
+    <h5 class="modal-title" id="staticBackdropLabel">
+        {% trans "Remove visit version" %}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
+</div>
+<div class="modal-body">
+    {% blocktrans trimmed %}
+        Do you wish to remove {{ content_object }} for {{ visit }}?
+    {% endblocktrans %}
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+    <form hx-post="{% if not visit %}
+            {% url "surveys:content-object-delete" element_id=element.id %}
+            {% else %}
+            {% url "surveys:content-object-delete" element_id=element.id visit_id=visit.id %}
+            {% endif %}"
+          hx-target="#grid">
+        <button type="submit" class="btn btn-danger">{% trans "Yes, remove!" %}</button>
+    </form>
+</div>

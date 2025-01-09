@@ -1,0 +1,395 @@
+table.datatable tbody th, table.datatable tbody td {
+  padding: 1px 8px; /* e.g. change 8x to 4px here */
+  max-width: 20px;
+  min-width: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+table.datatable-table:focus tr.datatable-cursor > td:first-child {
+	border-left: 3px var(--focus-border-color) solid;
+}
+
+
+body
+{
+   font-family: Helvetica !important;
+}
+.ui-autocomplete {
+  max-height: 300px;
+  max-width: 500px;
+  overflow: scroll;
+}
+
+.ui-widget-content {
+  background: white;
+}
+
+#tooltip {
+    position: fixed;
+    z-index: 1001;
+    display: none;
+    border: 2px solid var(--tooltip-border-color);
+    border-radius: 5px;
+    padding: 10px;
+    background-color: var(--tooltip-bg);
+  }
+
+.copsac-topnav {
+  display: block;
+  overflow: hidden;
+  background-color: var(--topnav-bg);
+  height: 25px;
+  color: var(--topnav-color);
+}
+
+.copsac-topnav a {
+  float: left;
+  display: block;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+}
+
+.copsac {
+  display: none;
+  float: left;
+}
+
+body.copsac-abc .copsac, body.copsac-copsac .copsac {
+  display: block;
+  border: none;
+  outline: none;
+  height: 2.95vh;
+  font-family: inherit;
+  margin: 0;
+}
+
+body.copsac-abc.active {
+  color: var(--abc-color);
+  background-color: var(--abc-bg);
+}
+
+body.copsac-copsac.active {
+  color: var(--copsac-color);
+  background-color: var(--copsac-bg);
+}
+
+body.passive {
+  color: var(--passive-color);
+  background-color: var(--passive-bg);
+}
+
+body.withdrawn {
+  color: var(--withdrawn-color);
+  background-color: var(--withdrawn-bg);
+}
+
+.copsac-topnav .search-container {
+  float: left;
+  padding: 0.15vh 0.5vw;
+}
+
+.searchForm a {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  float: none;
+  color: black;
+  padding: 8px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.user-dropdown {
+  float: right;
+  overflow: hidden;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  margin: 0;
+  padding: 0.3vh 0.5vh;
+}
+
+.user-dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.user-dropdown-content a {
+  float: none;
+  color: black;
+  padding: 8px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.user-dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.user-dropdown:hover .user-dropdown-content {
+  display: block;
+}
+
+.container-main {
+  display: flex;
+  margin-top: 2px;
+}
+
+.container-bottom {
+  display: block;
+  margin-left: 2px;
+  margin-right: 2px;
+  width: calc(100% - 4px);
+}
+
+div.left-col {
+  width: calc(36vw - 2px);
+  height: 100%;
+  float: left;
+  margin-right: 1vw;
+  margin-left: 2px;
+}
+
+div.mid-col {
+  min-width: 24vw;
+  height: 100%;
+  float: left;
+
+  margin-right: 1vw;
+}
+
+div.right-col {
+  height: 100%;
+  width: calc(38vw - 2px);
+  display: inline-block;
+  margin-right: 2px;
+}
+
+div.left-col > hr, div.right-col > hr {
+  visibility: hidden;
+  margin-top: 0;
+}
+
+.reminder textarea {
+  white-space: normal;
+  max-height: 25vh;
+  overflow: auto;
+  margin-top: 0.7vh;
+  display: block;
+  width: 100%;
+}
+
+.reminder textarea:read-only {
+  background-color: var(--textarea-inactive-bg);
+  white-space: pre-wrap;
+}
+
+.reminder .save, .reminder .cancel {
+  display: none;
+}
+
+.reminder:focus-within:not(.disabled) .save, .reminder:focus-within:not(.disabled) .cancel {
+  display: inline-block;
+}
+
+
+.institution-box {
+  display: block;
+  height: 24vh;
+}
+
+.proband-notes-box {
+  display: block;
+  margin-top: 0.7vh;
+  display: block;
+}
+
+.proband-notes-box {
+  height: 32vh;
+}
+
+.proband-notes-box .note .date .form-control {
+  display: inline;
+  width: fit-content;
+}
+
+.address-box {
+  height: 25vh;
+}
+
+.institution-box {
+  height: 24vh;
+}
+
+.institution-box, .address-box, .proband-notes-box {
+  background-color: var(--textarea-inactive-bg);
+  overflow: auto;
+}
+
+.datatable-wrapper, textarea, .address-box, .institution-box, .proband-notes-box  {
+  border: 1px solid var(--separator-color);
+  background-color: var(--table-bg);
+  color: var(--table-color);
+  margin-bottom: 10px;
+}
+
+
+.institution-box hr, .address.box hr, .proband-notes-box hr {
+  color: var(--separator-color);
+}
+
+.note textarea {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  resize: none;
+  border-right: 0;
+  border-left: 0;
+}
+
+.note textarea:read-only {
+  background-color: lightgray;
+  white-space: pre-wrap;
+}
+
+.note .save, .note .cancel {
+  display: none;
+}
+
+.note:focus-within:not(.disabled) .save, .note:focus-within:not(.disabled) .cancel {
+  display: inline-block;
+}
+
+button.edit {
+  display: inline;
+  background-color: inherit;
+  border: none;
+  text-decoration: underline;
+}
+
+.diagnosis {
+  display: block;
+  width: 32vw;
+  height: 25vh;
+  margin-top: -5vh;
+}
+
+.medication {
+  height: 20vh;
+  width: 32vw;
+  margin-top: -3vh;
+}
+
+.textblock {
+  display: block;
+  width: 100%;
+  resize: none;
+}
+
+.textblock input[type=text] {
+  border: 0;
+  background-color: inherit;
+  padding: 0;
+}
+span.copsac-left-text {
+  display: inline-block;
+  vertical-align: top;
+  padding-left: 1px;
+}
+
+textarea.address-right-text {
+  display: inline-block;
+  border: none;
+  height: 50%;
+  width: 110%;
+  vertical-align: top;
+  background-color: var(--textarea-inactive-bg);
+  resize: none;
+}
+
+form.form-right-text {
+  display: inline-block;
+}
+
+form.form-right-text:hover {
+  border: 1px solid var(--text-border-hover-color);
+}
+
+textarea.copsac-right-text:hover {
+  border: 1px solid var(--text-border-hover-color);
+}
+textarea.institution-right-text {
+  display: inline-block;
+  border: none;
+  height: 50%;
+  vertical-align: top;
+  background-color: var(--textarea-inactive-bg);
+  resize: none;
+}
+
+textarea.institution-right-text:hover {
+  border: 1px solid var(--text-border-hover-color);
+}
+
+
+h4 {
+  font-weight: bolder !important;
+  font-size: var(--bs-body-font-size) !important;
+  margin-top: 0.4rem;
+  margin-bottom: 0.1rem;
+}
+
+
+.datatable-table th a.plus-button, a.plus-button {
+  color: black;
+  text-decoration: underline;
+  font-style: normal;
+}
+
+.hidden {
+  display: none;
+}
+
+.medication,.vaccination {
+  opacity: 0.2;
+}
+
+.medication.active,.vaccination.active {
+  opacity: 1;
+}
+
+#relatives-consent {
+  display: flex;
+  gap: 10px;
+}
+
+#relates, #consent {
+  flex-grow: 1
+}
+
+#probands {
+  border: 1px;
+}
+
+.datatable-wrapper.no-footer .datatable-container {
+    border-bottom: 0px;
+}
+
+#relatives tr[data-deathdate] > td:first-child::after {
+    content: ' †';
+}
+
+#relatives tr[data-deathdate] {
+    color: var(--death-color);
+}

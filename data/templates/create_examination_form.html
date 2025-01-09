@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+
+<p> <h3> Create New Examination </h3></p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="container-top">
+    <div class="left-col col-sm-6">
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="proband">Proband:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="proband" name="proband" value="{{proband.name}}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="fk_visit">Visit:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="fk_visit" name="fk_visit" value="{{fk_visit.fk_visit_type.name|default_if_none:"" }}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="fk_dataset">Dataset:</label>
+        </div>
+        <div class="col-sm-6">
+        <select class="form-control form-select" id="fk_dataset" name="fk_dataset" required="True">
+          <option value=""> </option>
+          {% for option in dataset_options %}
+            <option value="{{option.id}}">{{ option.name | capfirst }}</option>
+          {% endfor %}
+        </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_start_date">Start date: </label>
+        </div>
+        <div class="col-sm-6">
+        <input type="date" class="form-control"  id="id_start_date" name="start_date" required="True">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_end_date">End date: </label>
+        </div>
+        <div class="col-sm-6">
+        <input type="date" class="form-control" id="id_end_date" name="end_date">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_status">Status: </label>
+        </div>
+        <div class="col-sm-6">
+          <select class="form-control form-select" id="id_status" name="status" required="True">
+            {% for option in status_choices %}
+              <option value="{{ option.0 }}">{{ option.1 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_comments">Comments: </label>
+        </div>
+        <div class="col-sm-6">
+        <textarea class="form-control textarea" id="id_comments" name="comments" oninput='this.style.height = this.scrollHeight + 3 + "px"'></textarea>
+      </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container-bottom">
+    <div class="row mt-4">
+      <div class="d-grid gap-2 d-md-block mx-auto">
+        <button type="button" class="btn btn-primary" onclick="history.back()" id="back">Back</button>
+        <button type="submit" class="btn btn-primary" id="submit">Save</button>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+{% endblock %}

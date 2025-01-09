@@ -1,0 +1,375 @@
+:root {
+  --bs-body-font-weight: 400 !important;
+  --bs-body-font-size: 13px !important;
+  --focus-border-color: blue;
+  --autocomplete-color: #333333;
+  --autocomplete-hover-bg: blue;
+  --autocomplete-hover-color: white;
+  --autocomplete-border-color: #dddddd;
+  --tooltip-bg: #fff;
+  --tooltip-border-color: #ebebeb;
+  --text-border-hover-color: #ebebeb;
+  --textarea-inactive-bg: lightgray;
+  --separator-color: #858585;
+  --table-color: #000;
+  --table-bg: #fff;
+  --copsac-topnav-bg: #e9e9e9;
+  --search-form-a-bg: #f9f9f9;
+  --user-dropdown-bg: #dbd640;
+  --user-dropdown-content-bg: #f9f9f9;
+  --user-dropdown-content-hover-bg: #ddd;
+  --container-main-bg: #2196F3;
+  --container-bottom-bg: #dbd640;
+  --locked-bg: #fa9ec8;
+  --selected-row-bg: #cce8ff;
+  --abc-bg: #1C7BAF; /* Blue */
+  --abc-color: white;
+  --copsac-bg: #F9F871; /* Yellow */
+  --copsac-color: black;
+  --passive-bg: #9B2423;
+  --passive-color: black;
+  --withdrawn-bg: #9B2423;
+  --withdrawn-color: black;
+  --topnav-color: black;
+  --topnav-bg: #e9e9e9;
+  --death-color: purple;
+}
+
+.container-top {
+  display: flex;
+}
+
+.container-bottom {
+  display: block;
+  position: bottom;
+}
+
+.left-col {
+  display: inline-block;
+  width: 60%;
+}
+
+.right-col {
+  display: inline-block;
+  width: 40%;
+}
+
+.hide {
+  display: none;
+}
+
+.mycheckbox {
+  margin-top: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.label-space {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.textarea {
+  display: block;
+  overflow: hidden;
+  resize: none;
+  min-height: 200px;
+  min-width: 400px;
+}
+.btn-space {
+  margin-left: 5px;
+}
+
+
+/* autocomplete */
+.autocomplete-choices {
+  cursor: pointer;
+  border: 1px solid var(--autocomplete-border-color);
+  color: var(--autocomplete-color);
+  background-color: white;
+  font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
+  font-size: 1.1em;
+  list-style: none;
+  padding: 2px;
+  margin: 0;
+  outline: none;
+  position: absolute;
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: scroll;
+}
+
+.autocomplete-choices li {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.autocomplete-choices li:hover {
+  color: var(--autocomplete-hover-color);
+  background-color: var(--autocomplete-hover-bg);
+}
+
+/* data table */
+
+.datatable-wrapper.no-header .datatable-container {
+	border-top: 1px solid #d9d9d9;
+}
+
+.datatable-wrapper.no-footer .datatable-container {
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.datatable-wrapper.no-footer .datatable-container table tbody tr:hover {
+  background-color: #b3d3ea;
+}
+
+.datatable-wrapper.no-footer .datatable-container table tbody tr:nth-child(2n-1) {
+  background-color: #f9f9f9;
+}
+
+
+.datatable-wrapper.no-footer .datatable-container table tbody tr:nth-child(2n-1):hover {
+  background-color: #b3d3ea;
+}
+
+
+.datatable-top,
+.datatable-bottom {
+	padding: 0;
+}
+
+.datatable-top > nav:first-child,
+.datatable-top > div:first-child,
+.datatable-bottom > nav:first-child,
+.datatable-bottom > div:first-child {
+	float: left;
+}
+
+.datatable-top > nav:last-child,
+.datatable-top > div:last-child,
+.datatable-bottom > nav:last-child,
+.datatable-bottom > div:last-child {
+	float: right;
+}
+
+.datatable-selector {
+	padding: 6px;
+}
+
+.datatable-input {
+	padding: 6px 12px;
+}
+
+.datatable-info {
+	margin: 7px 0;
+}
+
+/* PAGER */
+.datatable-pagination ul {
+	margin: 0;
+	padding-left: 0;
+}
+
+.datatable-pagination li {
+	list-style: none;
+	float: left;
+}
+
+.datatable-pagination a {
+	border: 1px solid transparent;
+	float: left;
+	margin-left: 2px;
+	padding: 6px 12px;
+	position: relative;
+	text-decoration: none;
+	color: #333;
+}
+
+.datatable-pagination a:hover {
+	background-color: #d9d9d9;
+}
+
+.datatable-pagination .active a,
+.datatable-pagination .active a:focus,
+.datatable-pagination .active a:hover {
+	background-color: #d9d9d9;
+	cursor: default;
+}
+
+.datatable-pagination .ellipsis a,
+.datatable-pagination .disabled a,
+.datatable-pagination .disabled a:focus,
+.datatable-pagination .disabled a:hover {
+	cursor: not-allowed;
+}
+
+.datatable-pagination .disabled a,
+.datatable-pagination .disabled a:focus,
+.datatable-pagination .disabled a:hover {
+	cursor: not-allowed;
+	opacity: 0.4;
+}
+
+.datatable-pagination .pager a {
+	font-weight: bold;
+}
+
+/* TABLE */
+.datatable-table {
+	max-width: 100%;
+	width: 100%;
+	border-spacing: 0;
+	border-collapse: separate;
+}
+
+.datatable-table > tbody > tr > td,
+.datatable-table > tbody > tr > th,
+.datatable-table > tfoot > tr > td,
+.datatable-table > tfoot > tr > th,
+.datatable-table > thead > tr > td,
+.datatable-table > thead > tr > th {
+	vertical-align: top;
+	padding: 1px 2px;
+}
+
+.datatable-table > thead > tr > th {
+	vertical-align: bottom;
+	text-align: left;
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.datatable-table > tfoot > tr > th {
+	vertical-align: bottom;
+	text-align: left;
+	border-top: 1px solid #d9d9d9;
+}
+
+.datatable-table th {
+	vertical-align: bottom;
+	text-align: left;
+}
+
+.datatable-table th button.datatable-sorter {
+	text-decoration: none;
+	color: inherit;
+  color: inherit;
+  border: 0;
+  background-color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+.datatable-sorter {
+	display: inline-block;
+	height: 100%;
+	position: relative;
+	width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.datatable-sorter:hover {
+  color: inherit;
+}
+
+.datatable-sorter::before,
+.datatable-sorter::after {
+	content: "";
+	height: 0;
+	width: 0;
+	position: absolute;
+	right: 4px;
+	border-left: 4px solid transparent;
+	border-right: 4px solid transparent;
+	opacity: 0.2;
+}
+
+.datatable-sorter::before {
+	border-top: 4px solid #000;
+	bottom: 0px;
+}
+
+.datatable-sorter::after {
+	border-bottom: 4px solid #000;
+	border-top: 4px solid transparent;
+	top: 0px;
+}
+
+.datatable-ascending .datatable-sorter::after,
+.datatable-descending .datatable-sorter::before {
+	opacity: 0.6;
+}
+
+.datatable-empty {
+	text-align: center;
+}
+
+.datatable-top::after, .datatable-bottom::after {
+	clear: both;
+	content: " ";
+	display: table;
+}
+
+.datatable-wrapper.no-footer .datatable-container table tbody tr.selected {
+  background-color: var(--selected-row-bg);
+}
+
+.datatable-wrapper.no-footer .datatable-container table tbody tr.locked {
+  background-color: var(--locked-bg);
+}
+
+.datatable-container tr {
+  cursor: pointer;
+}
+
+.datatable-wrapper + .datatable-wrapper {
+  margin-top: 2px;
+}
+
+/* Allow form validation.
+
+See:
+
+https://github.com/Choices-js/Choices/issues/1022#issuecomment-1126575444
+
+*/
+/* Adjust border radius */
+.choices[data-type*=select-one], .choices[data-type*=select-one] .choices__inner {
+	border-radius: 0.25rem;
+}
+
+/* Make the input invisible instead of hiding it. */
+.choices[data-type*=select-one] select.choices__input {
+    display: block !important;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
+
+/* Show invalid state. */
+.choices.is-focused,
+.choices:focus-within,
+.choices:focus {
+    box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+	border-color: #86b7fe;
+	outline: 0;
+}
+
+.choices__inner {
+  background-color: #fff !important;
+}
+
+@media (min-width:992px) {
+  .card-body.form {
+    column-count: 2;
+  }
+
+  .card-body.form div {
+    break-inside: avoid;
+  }
+}

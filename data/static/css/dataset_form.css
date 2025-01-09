@@ -1,0 +1,196 @@
+#survey-form-wrapper {
+    background-color: #fff;
+}
+
+.grid-content {
+    display: grid;
+    grid-template-rows: repeat(100, 7px);
+    grid-template-columns: repeat(100, 12px);
+}
+
+.form-menu button {
+    border: 0;
+    cursor: pointer;
+}
+
+form .aligned .form-menu {
+    font-size: 0.625rem;
+    font-weight: bold;
+    padding-left: 0;
+    float: right;
+    margin-left: 0;
+}
+
+form .aligned .form-menu li {
+    display: block;
+    float: left;
+    margin-left: 5px;
+    height: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+form .aligned .form-menu button {
+    display: block;
+    float: left;
+    padding: 3px 12px;
+    background: var(--object-tools-bg);
+    color: var(--object-tools-fg);
+    font-weight: 400;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 15px;
+}
+
+.form-check {
+    display: block;
+    min-height: 1.5rem;
+    padding-left: 1.5em;
+    margin-bottom: 0.125rem;
+}
+
+.form-check-inline {
+    display: inline-block;
+    margin-right: 1rem;
+}
+
+.form-check-input[type="radio"] {
+    border-radius: 50%;
+}
+
+.form-check .form-check-input {
+    float: left;
+    margin-left: -1.5em;
+}
+
+.form-check-input {
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    vertical-align: top;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+}
+
+.grid button,
+.grid input,
+.grid optgroup,
+.grid select,
+.grid textarea {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.grid label {
+    display: inline-block;
+    padding: 0;
+    width: initial;
+    word-wrap: initial;
+    line-height: initial;
+}
+
+.grid *,
+.grid ::after,
+.grid ::before {
+    box-sizing: border-box;
+}
+
+.grid-cell {
+    background-color: #f0f0f0;
+}
+
+#survey-form-wrapper .form-control:focus,
+#survey-form-wrapper .form-check-input:focus,
+#survey-form-wrapper .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 50, 50, 0.75);
+    outline: revert;
+}
+
+#survey-form-wrapper .form-check-input:checked {
+    border: 0;
+}
+
+.grid-item {
+    overflow: hidden;
+    margin-top: 1px;
+    margin-left: 1px;
+    box-sizing: border-box;
+}
+
+.card-header {
+    padding: 0.25rem 1rem;
+    padding: 0.25rem 1rem;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    padding: 1rem 1rem;
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    box-sizing: border-box;
+}
+
+.grid textarea,
+#comment {
+    resize: none;
+}
+
+#survey-form,
+#survey-form .form-control,
+#survey-form .form-select,
+.grid {
+    font-size: 10pt;
+}
+
+label.form-label {
+    margin: 0;
+    display: initial;
+    padding: 0;
+    width: initial;
+    word-wrap: initial;
+    line-height: initial;
+}
+
+.unselected-item {
+    background-color: white;
+}
+
+input::-webkit-datetime-edit,
+input::-webkit-inner-spin-button,
+input::-webkit-clear-button {
+    display: none;
+}
+
+input[type="date"][data-displaydate] {
+    position: relative;
+    color: white;
+}
+
+input[type="date"][data-displaydate]:before {
+    position: absolute;
+    left: 23px;
+    content: attr(data-displaydate);
+    display: inline-block;
+    color: black;
+}

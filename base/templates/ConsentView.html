@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load transpile %}
+{% block content %}
+<link rel="stylesheet" href="{% static "css/ConsentView.css" %}">
+<script src="{% static "js/ConsentView.mjs" %}"></script>
+<p> <h3>
+  Update Consent Status
+</h3></p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="container-top">
+    <div class="left-col col-sm-6">
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="proband">Proband:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="proband" name="proband" value="{{proband.name}}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="consent">Consent type:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="consent" name="consent" value="{{consent_type.name}}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="date">Date: </label>
+        </div>
+        <div class="col-sm-6">
+        <input type="date" class="form-control" id="date" name="date" value="{{consent.date|date:"Y-m-d"}}">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="date">Status: </label>
+        </div>
+        <div class="col-sm-6">
+          <select class="form-control form-select" id="status" name="status" requried=true>
+              {% for option in consent.STATUS_CHOICES %}
+                <option value="{{option.0}}"{% if consent.status == option.0 %}selected{% endif %}>{{ option.1 }}</option>
+              {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="comments">Comments:</label>
+        </div>
+        <div class="col-sm-6">
+        <textarea class="form-control textarea" id="comments" name="comments" oninput='this.style.height = this.scrollHeight + 3 + "px"'>{{consent.comments|default_if_none:""}}</textarea>
+        </div>
+      </div>
+  </div>
+
+  <div class="container-bottom">
+    <div class="row mt-4">
+      <div class="d-grid gap-2 d-md-block mx-auto">
+        <button type="button" class="btn btn-primary" onclick="history.back()" id="back">Back</button>
+        <button type="submit" class="btn btn-primary" id="submit">Save</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% endblock %}

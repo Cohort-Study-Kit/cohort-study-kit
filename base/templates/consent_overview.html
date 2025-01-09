@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load transpile %}
+{% block content %}
+<link rel="stylesheet" href="{% static "css/consent_overview.css" %}">
+<script src="{% static "js/consent_overview.mjs" %}"></script>
+<h3>Consent overview</h3>
+
+<table id="consent-overview"></table>
+
+<div class="container-bottom">
+  <div class="row mt-4">
+    <div class="d-grid gap-2 d-md-block mx-auto">
+      <a href="{% url "base:proband_home" copsac_id=copsac_id %}" id="back">
+        <button type="button" class="btn btn-primary">Back</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

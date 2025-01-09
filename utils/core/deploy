@@ -1,0 +1,95 @@
+#! /usr/bin/env python3
+################################################################################
+# This script executes the steps to update repo in production server and the
+# failover server, right after a developer / admin log on to the server.
+# USAGE: After log on, run the script.
+################################################################################
+import argparse
+import os
+import subprocess
+import sys
+
+# Initialize parser
+parser = argparse.ArgumentParser("Deploy update to server.")
+
+parser.add_argument(
+    "-n",
+    "--nomigration",
+    help="Don't run migrations",
+    action="store_true",
+)
+
+args = parser.parse_args()
+
+
+path = "/web_gui/copsac-web/"
+
+try:
+    os.chdir(path)
+except (FileNotFoundError, NotADirectoryError):
+    sys.stdout.write(
+        f"The path {path} does not exit. Are you sure you are on a server?\nAborting.\n",
+    )
+    sys.exit()
+
+venv_python = "/web_gui/venv/bin/python"
+
+if not os.path.isfile(venv_python):
+    sys.stdout.write("Python virtual env does not exist.\nAborting.\n")
+    sys.exit()
+
+sys.stdout.write("\n----- Fetch and pull current repo -----\n")
+subprocess.call(["sudo", "-s", "-u", "web", "git", "fetch"])
+subprocess.call(["sudo", "-s", "-u", "web", "git", "pull"])
+
+if not args.nomigration:
+    sys.stdout.write("\n----- Run migrations -----")
+    subprocess.call(
+        [
+            "sudo",
+            "-u",
+            "web",
+            "--",
+            "bash",
+            "-c",
+            f"{venv_python} ./manage.py migrate",
+        ],
+    )
+else:
+    sys.stdout.write("\n----- Check if there are unmigrated migrations -----")
+    number_migrations = (
+        os.popen(
+            f'{venv_python} ./manage.py showmigrations | grep "\\[ \\]" | wc -l',
+        )
+        .read()
+        .rstrip("\n")
+    )
+    if int(number_migrations) != 0:
+        sys.stdout.write(f"There are {number_migrations} unmigrated migrations.\n")
+        sys.stdout.write("Run without -n in order to migrate.")
+        sys.stdout.write("Aborting.\n")
+        sys.exit()
+    else:
+        sys.stdout.write("No unmigrated migrations. Proceeding.")
+sys.stdout.write("\n----- Collect Static files -----")
+subprocess.call(
+    [
+        "sudo",
+        "-u",
+        "web",
+        "--",
+        "bash",
+        "-c",
+        f"{venv_python} ./manage.py collectstatic <<< 'yes'",
+    ],
+)
+
+sys.stdout.write("\n----- Restart Gunicorn -----")
+if subprocess.call(["sudo", "service", "django-gunicorn", "restart"]):
+    sys.stdout.write(
+        "STATUS:\n"
+        + os.popen("systemctl status django-gunicorn | grep 'Active'")
+        .read()
+        .rstrip("\n"),
+    )
+sys.stdout.write("\n")

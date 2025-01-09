@@ -1,0 +1,57 @@
+# Whatever .* trashes but not gitignore
+.*
+!.gitignore
+!.gitattributes
+!.eslintrc.js
+!.prettierrc
+!.dockerignore
+!.pre-commit-config.yaml
+!.github
+pnpm-lock.yaml
+
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+media
+/static/
+screenshots/
+django.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+#Nodejs
+/node_modules/
+/package-lock.json
+
+# COpsac specific
+updated_views.sql
+*.xlsx
+/utils/import/utils/*.sql
+/utils/import/csv/*.csv
+/utils/import/xlsx/*.xlsx
+/config/local_settings.py

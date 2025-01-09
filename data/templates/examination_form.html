@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load transpile %}
+{% block title %}{{ title }} - COPSAC{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static "css/survey.css" %}">
+    <link rel="stylesheet" href="{% static "css/dataset_form.css" %}">
+{% endblock %}
+{% block javascript %}
+    <script type="text/javascript">
+      window.form = {{ form_json | safe }}
+      window.formOptions = {{ form_options_json | safe }}
+      window.examination = {{ examination_json | safe }}
+    </script>
+    <script src="{% static "js/examination_form.mjs" %}"></script>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% if user.can_moderate %}<li class="breadcrumb-item"><a href="{% url 'backoffice:data_examination_change' id %}">Open in backoffice</a></li>{% endif %}
+    {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item">
+            {{ breadcrumb|safe }}
+        </li>
+    {% endfor %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+        <h4 class="w-100 text-center mb-1">
+            {{ title|safe }}
+        </h4>
+        <div id="survey-form-wrapper"></div>
+    </div>
+
+    <div class="position-fixed bottom-0 start-50 translate-middle d-flex font-monospace text-muted">
+    <small class="font-monospace text-muted">Version: {{ version_time|date:"Y-m-d\TH:i:sO" }}</small>
+    </div>
+
+{% endblock %}

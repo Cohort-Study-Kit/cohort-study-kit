@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<script src="{% static "js/RelativeView.js" %}"></script>
+
+<p> <h3>
+  {% if "create" in request.path %}
+    Create New Relative
+  {% else %}
+    Update Relative Data
+  {% endif %}
+</h3></p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" id="copsac_id" name="copsac_id" value="{{proband.copsac_id}}" readonly=true>
+  <div class="container-top">
+    <div class="left-col col-sm-6">
+      {% if relative %}
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="relative">Relative:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="relative" name="relative" value="{{relative.name}}" readonly=true>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="proband">Proband:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="proband" name="proband" value="{{proband.name}}" readonly=true>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="fistname">First name:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="firstname" name="firstname" value="{{relative.firstname}}" required="True">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="lastname">Last name:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="lastname" name="lastname" value="{{relative.lastname}}" required="True">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="cpr">CPR Number:</label>
+        </div>
+        <div class="col-sm-6">
+        <input class="form-control" id="cpr" name="cpr" value="{% if relative.cpr %}{{relative.cpr|slice:":6"}}-{{relative.cpr|slice:"6:"}}{% endif %}" required="True">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="birthdate">Birthdate:</label>
+        </div>
+        <div class="col-sm-6">
+        <input type="date" class="form-control" id="birthdate" name="birthdate" value="{{relative.birthdate|date:"Y-m-d"}}" required="True">
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="relation_type">Relation type:</label>
+        </div>
+        <div class="col-sm-6">
+        <select class="form-control form-select" id="relation_type" name="relation_type" required="True">
+            <option value="{{relative.relation_type}}">{{ relative.get_relation_type_display }}</option>
+            {% for option in relation_type_options %}
+              <option value="{{option.0}}">{{ option.1 }}</option>
+            {% endfor %}
+        </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="id_twin">Twin sibling type:</label>
+        </div>
+        <div class="col-sm-6">
+        <select class="form-control form-select" id="id_twin" name="twin">
+            <option value="{{relative.twin|default_if_none:''}}">{{relative.twin|default_if_none:""}} </option>
+            <option value=""></option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+        </select>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="dead">Dead?:</label>
+        </div>
+        {% if relative.deathdate %}
+        <div class="col-sm-6">
+        <input type="checkbox" class="mycheckbox" id="dead" name="dead" checked="checked">
+        </div>
+      </div>
+        <div class="row mt-4" id="showDeathdate">
+          <div class="col-sm-3">
+          <label class="col-form-label" for="deathdate">Deathdate:</label>
+          </div>
+          <div class="col-sm-6">
+          <input type="date" class="form-control" id="deathdate" value="{{relative.deathdate|date:"Y-m-d"}}" name="deathdate">
+          </div>
+        </div>
+        {% else %}
+        <div class="col-sm-3">
+        <input type="checkbox" class="mycheckbox" id="dead" name="dead">
+        </div>
+      </div>
+
+        <div class="row mt-4 hide" id="showDeathdate">
+          <div class="col-sm-3">
+          <label class="col-form-label" for="deathdate">Deathdate:</label>
+          </div>
+          <div class="col-sm-6">
+          <input type="date" class="form-control" id="deathdate" value="{{relative.deathdate|date:"Y-m-d"}}" name="deathdate">
+          </div>
+        </div>
+        {% endif %}
+
+      <div class="row mt-4">
+        <div class="col-sm-3">
+        <label class="col-form-label" for="comments">Comments:</label>
+        </div>
+        <div class="col-sm-6">
+        <textarea class="form-control textarea" id="comments" name="comments" oninput='this.style.height = this.scrollHeight + 3 + "px"'>{{relative.comments|default_if_none:""}}</textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right-col col-sm-6 offset-sm-1">
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="atopic_father">Atopic father?: </label>
+        {% if relative.atopic_father %}
+        <input type="checkbox" class="mycheckbox"  id="atopic_father" name="atopic_father" value="{{relative.atopic_father}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="atopic_father" name="atopic_father" value="{{relative.atopic_father}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="allfood">History of food allergy?: </label>
+        {% if relative.allfood %}
+        <input type="checkbox" class="mycheckbox"  id="allfood" name="allfood" value="{{relative.allfood}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="allfood" name="allfood" value="{{relative.allfood}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="allinh">History of inhalant allergy?: </label>
+        {% if relative.allinh %}
+        <input type="checkbox" class="mycheckbox"  id="allinh" name="allinh" value="{{relative.allinh}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="allinh" name="allinh" value="{{relative.allinh}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="alliv">History of typeIV allergy?: </label>
+        {% if relative.alliv %}
+        <input type="checkbox" class="mycheckbox"  id="alliv" name="alliv" value="{{relative.alliv}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="alliv" name="alliv" value="{{relative.alliv}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="asthist">History of asthmatic symptoms?: </label>
+        {% if relative.asthist %}
+        <input type="checkbox" class="mycheckbox"  id="asthist" name="asthist" value="{{relative.asthist}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="asthist" name="asthist" value="{{relative.asthist}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="astdoc">Doctor diagnosed asthma?: </label>
+        {% if relative.astdoc %}
+        <input type="checkbox" class="mycheckbox"  id="astdoc" name="astdoc" value="{{relative.astdoc}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="astdoc" name="astdoc" value="{{relative.astdoc}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="asthmamedication">Daily asthma medication > 1 yr?: </label>
+        {% if relative.asthmamedication %}
+        <input type="checkbox" class="mycheckbox"  id="asthmamedication" name="asthmamedication" value="{{relative.asthmamedication}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="asthmamedication" name="asthmamedication" value="{{relative.asthmamedication}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="rhinhist">History of Rhinitis?: </label>
+        {% if relative.rhinhist %}
+        <input type="checkbox" class="mycheckbox"  id="rhinhist" name="rhinhist" value="{{relative.rhinhist}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="rhinhist" name="rhinhist" value="{{relative.rhinhist}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="rhinmed">Ever received medical treatment for Rhinitis?: </label>
+        {% if relative.rhinmed %}
+        <input type="checkbox" class="mycheckbox"  id="rhinmed" name="rhinmed" value="{{relative.rhinmed}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="rhinmed" name="rhinmed" value="{{relative.rhinmed}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="rhindoctor">Doctor diagnosed Rhinitis?: </label>
+        {% if relative.rhindoctor %}
+        <input type="checkbox" class="mycheckbox"  id="rhindoctor" name="rhindoctor" value="{{relative.rhindoctor}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="rhindoctor" name="rhindoctor" value="{{relative.rhindoctor}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="dermhist">History of Dermatitis?: </label>
+        {% if relative.dermhist %}
+        <input type="checkbox" class="mycheckbox"  id="dermhist" name="dermhist" value="{{relative.dermhist}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="dermhist" name="dermhist" value="{{relative.dermhist}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="dermmed">Ever received medical treatment for Dermatitis?: </label>
+        {% if relative.dermmed %}
+        <input type="checkbox" class="mycheckbox"  id="dermmed" name="dermmed" value="{{relative.dermmed}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="dermmed" name="dermmed" value="{{relative.dermmed}}">
+        {% endif %}
+      </div>
+
+      <div class="row mt-2">
+        <label class="col-sm-4 me-4 col-form-label" for="dermdoctor">Doctor diagnosed Dermatitis?: </label>
+        {% if relative.dermdoctor %}
+        <input type="checkbox" class="mycheckbox"  id="dermdoctor" name="dermdoctor" value="{{relative.dermdoctor}}" checked>
+        {% else %}
+        <input type="checkbox" class="mycheckbox"  id="dermdoctor" name="dermdoctor" value="{{relative.dermdoctor}}">
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="container-bottom">
+    <div class="row mt-4">
+      <div class="d-grid gap-2 d-md-block mx-auto">
+        <button type="button" class="btn btn-primary" onclick="history.back()" id="back">Back</button>
+        <button type="submit" class="btn btn-primary" id="submit">Save</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% endblock %}

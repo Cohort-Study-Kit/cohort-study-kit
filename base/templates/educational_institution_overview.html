@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load transpile %}
+{% block content %}
+<link rel="stylesheet" href="{% static "css/educational_institution_overview.css" %}">
+<script src="{% static "js/educational_institution_overview.mjs" %}"></script>
+<h3>Educational institutions overview</h3>
+
+<div>
+  <a href="{% url "base:educational_institution_create_view" copsac_id=copsac_id %}" id="add-education-institution">
+    Add education institution
+  </a>
+</div>
+
+<table></table>
+
+<div class="container-bottom">
+  <div class="row mt-4">
+    <div class="d-grid gap-2 d-md-block mx-auto">
+      <a href="{% url "base:proband_home" copsac_id=copsac_id %}" id="back">
+        <button type="button" class="btn btn-primary">Back</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,20 @@
+<div {% if not widget.attrs.style %}style="width:{{widget.width|default:'100%'}};display:inline-block;"{% endif %}{% include "django/forms/widgets/attrs.html" %}></div>
+
+<textarea id="{{widget.attrs.id}}_textarea" name="{{ widget.name }}" required="" style="display: none">{{ widget.value }}</textarea>
+
+<script>
+    (function() {
+        const container = document.getElementById("{{ widget.attrs.id }}")
+        const textarea = document.getElementById("{{widget.attrs.id}}_textarea")
+
+        const options = {{ widget.options|safe }}
+        options.onChange = function () {
+            const value = form.get()
+            textarea.value=JSON.stringify(value)
+        }
+
+        const form = new DatasetFormWidget(container, options)
+        const value = {{ widget.value|safe }}
+        form.set(value)
+    })();
+</script>

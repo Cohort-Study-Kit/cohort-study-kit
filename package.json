@@ -1,0 +1,13 @@
+{
+  "name": "copsac-web",
+  "version": "1.0.0",
+  "description": "Copsac web interface",
+  "main": ".",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/copsac-admin/copsac-web.git"
+  },
+  "dependencies": {
+    "pnpm": "^9.14.2"
+  }
+}

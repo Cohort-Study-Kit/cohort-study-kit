@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load transpile %}
+{% block content %}
+<link rel="stylesheet" href="{% static "css/medication_overview.css" %}">
+<script src="{% static "js/medication_overview.mjs" %}"></script>
+<h3>Medication overview</h3>
+
+<div>
+  <a href="{% url "healthcare_records:medication_create_view" copsac_id=copsac_id %}" id="add-medication">
+    Add medication
+  </a>
+</div>
+
+<div>
+  <a href="{% url "healthcare_records:medication_create_view" copsac_id=copsac_id %}?vaccine=true", id="add-vaccination">
+    Add vacination
+  </a>
+</div>
+
+
+<table></table>
+
+<div class="container-bottom">
+  <div class="row mt-4">
+    <div class="d-grid gap-2 d-md-block mx-auto">
+      <a href="{% url "base:proband_home" copsac_id=copsac_id %}" id="back">
+        <button type="button" class="btn btn-primary">Back</button>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

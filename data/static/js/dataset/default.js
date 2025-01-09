@@ -1,0 +1,50 @@
+export const DEFAULT_CONTENT = {
+  html: {
+    html: "",
+  },
+  label: {
+    text: "",
+    tag: null,
+    border_left: false,
+    border_right: false,
+    border_top: false,
+    border_bottom: false,
+    background: false,
+  },
+  input_question: {
+    text: "",
+    hide_text: false,
+    input_type: "text_input",
+    placement: "below",
+    placeholder: "",
+    column: false,
+    caption: "",
+    default_value: "",
+  },
+  data_question: {
+    property: false,
+  },
+  single_column_question: {
+    text: "",
+    hide_text: false,
+    placement: "below",
+    options: [],
+    options_orientation: "horizontal",
+    input_type: "radio-buttons",
+    column: false,
+    caption: "",
+  },
+  multi_column_question: {
+    text: "",
+    hide_text: false,
+    placement: "below",
+    options: [],
+    options_orientation: "horizontal",
+  },
+  show_value: {
+    source: "",
+    variables: [],
+    text: "",
+    hide_text: false,
+  },
+}

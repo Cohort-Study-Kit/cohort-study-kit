@@ -1,0 +1,62 @@
+body, #survey-form-wrapper, #default-survey {
+    background-color: #f0f0f0;
+}
+
+#grid-content {
+    display: grid;
+}
+
+#survey-form-wrapper .form-control:focus,
+#survey-form-wrapper .form-check-input:focus,
+#survey-form-wrapper .form-select:focus
+{
+    box-shadow: 0 0 0 .25rem rgba(255,50,50,.75);
+    outline: revert;
+}
+
+#survey-form-wrapper .form-check-input:checked {
+    border: 0;
+}
+
+.grid-item {
+    overflow: auto;
+}
+
+.card-header {
+    padding: 0.25rem 1rem;
+    padding: .25rem 1rem;
+}
+
+#grid textarea, #comment {
+    resize: none;
+}
+
+#survey-form-wrapper, #survey-form-wrapper .form-control, #survey-form-wrapper .form-select, #grid {
+    font-size: 10pt;
+}
+
+.form-control, .form-select {
+    padding: 2px;
+}
+.form-select {
+    background-position: right .1rem center;
+    background-size: 14px 10px
+}
+.form-label {
+    margin: 0;
+}
+div.warnings li {
+    list-style-type: none;
+    font-weight: bold;
+}
+
+div.warnings {
+    background-color: #f08080;
+    padding: 10px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+}
+
+div.warning {
+    background-color:	#f08080;
+}

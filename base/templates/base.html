@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}CSK{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static "img/icon/favicon-96x96.png" %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static "img/icon/favicon.svg" %}" />
+    <link rel="shortcut icon" href="{% static "img/icon/favicon.ico" %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static "img/icon/apple-touch-icon.png" %}" />
+    <meta name="apple-mobile-web-app-title" content="Cohort Study Kit" />
+    <link rel="manifest" href="{% static "img/icon/site.webmanifest" %}" />
+    <link rel="stylesheet" href="{% static "lib/css/bootstrap.min.5_1_3.css" %}">
+    <link rel="stylesheet" href="{% static "lib/css/bootstrap-icons.min.1_8_1.css" %}">
+    <link rel="stylesheet" href="{% static "lib/css/flatpickr.min.css" %}">
+    <link rel="stylesheet" href="{% static "lib/css/choices.min.css" %}">
+    <script src="{% static "lib/js/bootstrap.bundle.5_1_3.min.js" %}"></script>
+    <script src="{% static "js/components.js" %}"></script>
+    <link rel="stylesheet" href="{% static "css/base.css" %}">
+    {% block css %}
+    {% endblock %}
+    {% block javascript %}
+    {% endblock %}
+
+  </head>
+  <body data-copsac="{{copsac_id}}">
+    <div id="content" class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+              <a class="home" href="
+                  {% if examination_name %}
+                        {% url "base:proband_home" copsac_id=copsac_id visit_id=visit_id examination_name=examination_name %}
+                  {% elif visit_id %}
+                        {% url "base:proband_home" copsac_id=copsac_id visit_id=visit_id %}
+                  {% else %}
+                            {% url "base:proband_home" copsac_id=copsac_id %}
+                  {% endif %}
+                  ">
+                  Proband (Copsac ID: {{copsac_id}})
+              </a>
+          </li>
+          {% block breadcrumbs %}{% endblock %}
+        </ol>
+      </nav>
+      <div class="card">
+        <div class="card-body {% block card-body-class %}{% endblock %}">
+          <h5 class="card-title"></h5>
+          <p class="card-text">{% block content %}{% endblock %}</p>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

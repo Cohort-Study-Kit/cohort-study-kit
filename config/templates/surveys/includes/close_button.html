@@ -1,0 +1,8 @@
+{% load i18n %}
+<button aria-label="{% trans "Close" %}"
+        class="btn-close"
+        data-bs-dismiss="offcanvas"
+        type="button"
+        hx-get="{% url "surveys:element-list" survey_id=survey_id %}"
+        hx-target="#sidebar-content">
+</button>
