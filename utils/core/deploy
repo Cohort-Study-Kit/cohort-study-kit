@@ -33,6 +33,7 @@ except (FileNotFoundError, NotADirectoryError):
     sys.exit()
 
 venv_python = "/web_gui/venv/bin/python"
+venv_pip = "/web_gui/venv/bin/pip"
 
 if not os.path.isfile(venv_python):
     sys.stdout.write("Python virtual env does not exist.\nAborting.\n")
@@ -41,6 +42,31 @@ if not os.path.isfile(venv_python):
 sys.stdout.write("\n----- Fetch and pull current repo -----\n")
 subprocess.call(["sudo", "-s", "-u", "web", "git", "fetch"])
 subprocess.call(["sudo", "-s", "-u", "web", "git", "pull"])
+
+sys.stdout.write("\n----- Update Python dependencies -----")
+subprocess.call(
+    [
+        "sudo",
+        "-u",
+        "web",
+        "--",
+        "bash",
+        "-c",
+        f"{venv_pip} install --upgrade pip",
+    ],
+)
+subprocess.call(
+    [
+        "sudo",
+        "-u",
+        "web",
+        "--",
+        "bash",
+        "-c",
+        f"{venv_pip} install -r requirements.txt",
+    ],
+)
+
 
 sys.stdout.write("\n----- Transpile -----")
 subprocess.call(
