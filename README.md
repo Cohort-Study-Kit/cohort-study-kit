@@ -78,8 +78,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## Support
 
 - [Documentation](docs/)
-- [Issue Tracker](issues/)
-- [Discussion Forum](discussions/)
+- [Issue Tracker](https://github.com/Cohort-Study-Kit/cohort-study-kit/issues)
 
 ## License
 
