@@ -4,9 +4,9 @@ Description=gunicorn service for COPSAC-web
 [Service]
 Type=simple
 RuntimeDirectory=django-gunicorn
-WorkingDirectory=/web_gui/copsac-web/
+WorkingDirectory=/web_gui/cohort-study-kit/
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/web_gui/venv/bin/gunicorn -c /web_gui/copsac-web/utils/gunicorn/gunicorn.conf.py config.wsgi
+ExecStart=/web_gui/venv/bin/gunicorn -c /web_gui/cohort-study-kit/utils/gunicorn/gunicorn.conf.py config.wsgi
 # StandardOutput=append:/var/log/gunicorn/error.log
 # StandardError=append:/var/log/gunicorn/error.log
 
