@@ -41,7 +41,7 @@ class DatasetFormWidget(forms.Widget):
         context["widget"]["height"] = self.height
         column_query = Column.objects.order_by("fk_dataset__name", "name")
         properties_query = Dataset.objects.filter(data_schema__properties__isnull=False)
-        if hasattr(self, "instance"):
+        if hasattr(self, "instance") and self.instance.id:
             options["dataset_name"] = self.instance.name
             options["data_schema"] = self.instance.data_schema
             options["columns"] = list(
@@ -53,6 +53,10 @@ class DatasetFormWidget(forms.Widget):
             )
             column_query = column_query.exclude(fk_dataset=self.instance)
             properties_query = properties_query.exclude(id=self.instance.id)
+        else:
+            options["dataset_name"] = ""
+            options["data_schema"] = {}
+            options["columns"] = []
         options["external_columns"] = [
             {"dataset": column["fk_dataset__name"], "column": column["name"]}
             for column in column_query.values("fk_dataset__name", "name")
