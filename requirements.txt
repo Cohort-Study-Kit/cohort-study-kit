@@ -8,7 +8,7 @@ django-extensions==3.2.3
 django-json-widget==2.0.1
 django-jsonform==2.23.1
 django-mysql==4.15.0
-django-npm-mjs==3.1.0
+django-npm-mjs==3.1.1
 django-simple-history==3.7.0
 gunicorn==23.0.0
 JSON-minify==0.3.0
