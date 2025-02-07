@@ -17,4 +17,4 @@ pre-commit==4.1.0
 python-dotenv==1.0.1
 selenium==4.28.1
 webdriver-manager==4.0.2
-nodejs-wheel==22.13.0
+nodejs-wheel==22.13.1
