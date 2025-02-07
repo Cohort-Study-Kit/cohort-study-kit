@@ -3,7 +3,7 @@ Django==5.1.5
 django-allauth==65.3.1
 django-browser-reload==1.17.0
 django-crispy-forms==2.3
-django-debug-toolbar==4.4.6
+django-debug-toolbar==5.0.1
 django-extensions==3.2.3
 django-json-widget==2.0.1
 django-jsonform==2.23.1
