@@ -13,7 +13,7 @@ django-simple-history==3.8.0
 gunicorn==23.0.0
 JSON-minify==0.3.0
 mysqlclient==2.2.6
-pre-commit==4.0.1
+pre-commit==4.1.0
 python-dotenv==1.0.1
 selenium==4.28.1
 webdriver-manager==4.0.2
