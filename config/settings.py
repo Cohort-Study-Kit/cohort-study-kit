@@ -150,18 +150,10 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 if True is False:
     INSTALLED_APPS += [
         "django_browser_reload",
-        "debug_toolbar",
     ]
     MIDDLEWARE += [
-        "debug_toolbar.middleware.DebugToolbarMiddleware",
         "django_browser_reload.middleware.BrowserReloadMiddleware",
     ]
-    # Always show DDT in development for any IP, not just 127.0.0.1 or
-    # settings.INTERNAL_IPS. This is useful in a docker setup where the
-    # requesting IP isn't static.
-    DEBUG_TOOLBAR_CONFIG = {
-        "SHOW_TOOLBAR_CALLBACK": lambda _x: DEBUG,
-    }
 
 SURVEYS_GRID_HEIGHT = 700
 SURVEYS_GRID_ROWS = 100
