@@ -1,5 +1,7 @@
 # Contributors
 
+Dion Aagaard-Hansen
+
 Víðir Valberg Guðmundsson
 
 Alex Hemmingsen
@@ -7,6 +9,10 @@ Alex Hemmingsen
 Kristoffer Linder-Steinlein
 
 Mads Østerø Nørregaard
+
+Ulrik Ralfkiaer
+
+Michael Westenholz
 
 Johannes Wilm
 
