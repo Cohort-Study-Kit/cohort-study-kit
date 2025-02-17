@@ -240,7 +240,7 @@ class Medication(models.Model):
     )
     recipient = models.CharField(
         blank=False,
-        choices=[("proband", "Proband"), ("mother", "Proband's Mother")],
+        choices=[("proband", "Proband"), ("mother", "Proband's mother")],
         max_length=7,
         default="proband",
     )
