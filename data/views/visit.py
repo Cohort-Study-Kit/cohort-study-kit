@@ -74,8 +74,10 @@ class VisitView(TemplateView, LoginRequiredMixin):
             if visit.visit_date != visit_date:
                 visit.visit_date = visit_date
                 # Also update the startdate of all connected events that are
-                # planned.
-                for planned_event in visit.examination_set.filter(status="planned"):
+                # planned or none.
+                for planned_event in visit.examination_set.filter(
+                    status__in=["planned", "none"],
+                ):
                     planned_event.startdate = visit_date
                     if (
                         planned_event.finishdate
