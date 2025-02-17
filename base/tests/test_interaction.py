@@ -325,8 +325,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         dose_field = self.driver.find_element(By.ID, "id_dose")
         dose_field.send_keys("2")
 
-        mother_field = self.driver.find_element(By.ID, "id_source_type")
-        mother_field.click()
+        recipient_selector = Select(self.driver.find_element(By.ID, "id_recipient"))
+        recipient_selector.select_by_visible_text("Proband's mother")
 
         medication_field = self.driver.find_element(By.XPATH, '//div[@class="choices"]')
         medication_field.click()

@@ -65,6 +65,12 @@ LOCK_STATUS_CHOICES = [
 
 class Diagnosis(models.Model):
     proband = models.ForeignKey("base.Proband", on_delete=models.CASCADE)
+    recipient = models.CharField(
+        blank=False,
+        choices=[("proband", "Proband"), ("mother", "Proband's mother")],
+        max_length=7,
+        default="proband",
+    )
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     icd_code = models.ForeignKey(ICDCode, on_delete=models.CASCADE)
@@ -232,7 +238,12 @@ class Medication(models.Model):
         max_length=255,
         choices=ROUTE_SPEC_CHOICES,
     )
-    source_type = models.BooleanField(default=False)
+    recipient = models.CharField(
+        blank=False,
+        choices=[("proband", "Proband"), ("mother", "Proband's Mother")],
+        max_length=7,
+        default="proband",
+    )
     unit = models.CharField(blank=True, max_length=255, choices=UNIT_CHOICES)
     dose = models.CharField(blank=True, null=True, max_length=255)
     comments = models.CharField(blank=True, max_length=1000)
