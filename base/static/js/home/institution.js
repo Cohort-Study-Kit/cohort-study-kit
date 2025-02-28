@@ -18,7 +18,7 @@ export class Institution {
   }
 
   render() {
-    const outHTML = `<h4>Institutions: <a class="plus-button create-institution" href="/educational_institution/${
+    const outHTML = `<h4>${gettext("Institutions")}: <a class="plus-button create-institution" href="/educational_institution/${
       this.copsacId
     }/">+</a></h4>
     <div class="institution-box">
@@ -29,21 +29,23 @@ export class Institution {
           }, ${institution.postcode} ${institution.city}${
             institution.province ? `, ${institution.province}` : ""
           }${
-            institution.country === "DK" ? "" : `, ${institution.country}`
+            institution.country === settings_COUNTRY
+              ? ""
+              : `, ${institution.country}`
           } </b> </div>
           ${
             institution.type
-              ? `<div class="textblock"> <b> Type: </b> ${institution.type} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Type")}: </b> ${institution.type} </div>`
               : ""
           }
           ${
             institution.phone
-              ? `<div class="textblock"> <b> Phone: </b> ${institution.phone} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Phone")}: </b> ${institution.phone} </div>`
               : ""
           }
           ${
             institution.comments
-              ? `<div class="textblock"> <b> Comments: </b> ${institution.comments} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Comments")}: </b> ${institution.comments} </div>`
               : ""
           }
        `,

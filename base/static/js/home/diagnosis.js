@@ -36,10 +36,10 @@ export class Diagnosis {
         headings: [
           "ID",
           "lock_status",
-          `Diagnosis: <a class="plus-button" href="/diagnosis/${this.copsacId}/">+</a>`,
-          "ICD10",
-          "Start date",
-          "End date",
+          `${gettext("Diagnosis:")} <a class="plus-button" href="/diagnosis/${this.copsacId}/">+</a>`,
+          gettext("ICD10"),
+          gettext("Start date"),
+          gettext("End date"),
         ],
         data: diagnosis,
       },
@@ -109,7 +109,7 @@ export class Diagnosis {
     )
     if (
       confirm(
-        `Are you sure you want to delete diagnosis: ${diagnosis.cells[2].data}`,
+        `${gettext("Are you sure you want to delete diagnosis:")} ${diagnosis.cells[2].data}`,
       )
     ) {
       return get(`/api/diagnosis/delete/${this.copsacId}/${id}/`).then(
@@ -170,7 +170,7 @@ export class Diagnosis {
 
     const menuItems = [
       {
-        label: "Edit diagnosis",
+        label: gettext("Edit diagnosis"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           if (!tr) {
@@ -185,7 +185,7 @@ export class Diagnosis {
         },
       },
       {
-        label: "Lock/unlock diagnosis",
+        label: gettext("Lock/unlock diagnosis"),
         callback: (event) => {
           const tr = event.target.closest("tr[data-id]")
           if (!tr) {
@@ -197,7 +197,7 @@ export class Diagnosis {
         },
       },
       {
-        label: "Delete diagnosis",
+        label: gettext("Delete diagnosis"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           if (!tr) {

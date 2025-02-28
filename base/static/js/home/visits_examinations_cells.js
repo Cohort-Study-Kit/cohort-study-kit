@@ -91,13 +91,13 @@ export class VisitsExaminationsCells {
       type: "string",
       data: {
         headings: [
-          "ID",
-          `Visits: <a class="plus-button create-visit" href="/data/visit/create/${this.copsacId}/">+</a>`,
-          "Sec. type",
-          "Status",
-          "Date",
-          "Adhoc",
-          "Comments",
+          gettext("ID"),
+          `${gettext("Visits")}: <a class="plus-button create-visit" href="/data/visit/create/${this.copsacId}/">+</a>`,
+          gettext("Sec. type"),
+          gettext("Status"),
+          gettext("Date"),
+          gettext("Adhoc"),
+          gettext("Comments"),
         ],
         data: visits,
       },
@@ -191,15 +191,15 @@ export class VisitsExaminationsCells {
         type: "string",
         data: {
           headings: [
-            "url",
-            "ID",
-            "lock_status",
-            "name",
-            `Examinations: <a class="plus-button create-examination">+</a>`,
-            "Visit",
-            "Status",
-            "Date",
-            "Comments",
+            gettext("url"),
+            gettext("ID"),
+            gettext("lock_status"),
+            gettext("name"),
+            `${gettext("Examinations")}: <a class="plus-button create-examination">+</a>`,
+            gettext("Visit"),
+            gettext("Status"),
+            gettext("Date"),
+            gettext("Comments"),
           ],
           data: examinations,
         },
@@ -373,7 +373,9 @@ export class VisitsExaminationsCells {
       (row) => row.cells[0].data === id,
     )
     if (
-      confirm(`Are you sure you want to delete visit: ${visit.cells[1].data}`)
+      confirm(
+        `${gettext("Are you sure you want to delete visit:")} ${visit.cells[1].data}`,
+      )
     ) {
       return get(`/api/delete_visit/${id}/`).then(() => {
         const visitIndex = this.visitsTable.data.data.findIndex(
@@ -428,7 +430,7 @@ export class VisitsExaminationsCells {
     )
     if (
       confirm(
-        `Are you sure you want to delete examination: ${examination.cells[3].data}`,
+        `${gettext("Are you sure you want to delete examination:")} ${examination.cells[3].data}`,
       )
     ) {
       return get(`/api/delete_examination/${id}/`).then(() => {
@@ -519,7 +521,7 @@ export class VisitsExaminationsCells {
 
     const visitMenuItems = [
       {
-        label: "Select visit",
+        label: gettext("Select visit"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id
@@ -532,7 +534,7 @@ export class VisitsExaminationsCells {
         },
       },
       {
-        label: "Edit visit",
+        label: gettext("Edit visit"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id
@@ -542,7 +544,7 @@ export class VisitsExaminationsCells {
     ]
     if (document.body.dataset.canModerate) {
       visitMenuItems.push({
-        label: "Delete visit",
+        label: gettext("Delete visit"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = parseInt(tr.dataset.id)
@@ -635,7 +637,7 @@ export class VisitsExaminationsCells {
 
     const examinationMenuItems = [
       {
-        label: "Select examination",
+        label: gettext("Select examination"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const name = tr.dataset.name
@@ -648,7 +650,7 @@ export class VisitsExaminationsCells {
         },
       },
       {
-        label: "Edit examination",
+        label: gettext("Edit examination"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const url = tr.dataset.url
@@ -659,7 +661,7 @@ export class VisitsExaminationsCells {
         },
       },
       {
-        label: "Lock/unlock event",
+        label: gettext("Lock/unlock event"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           this.lockExaminationRow(tr)
@@ -669,7 +671,7 @@ export class VisitsExaminationsCells {
 
     if (document.body.dataset.canModerate) {
       examinationMenuItems.push({
-        label: "Open examination in backoffice",
+        label: gettext("Open examination in backoffice"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = parseInt(tr.dataset.id)
@@ -677,7 +679,7 @@ export class VisitsExaminationsCells {
         },
       })
       examinationMenuItems.push({
-        label: "Delete examination",
+        label: gettext("Delete examination"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = parseInt(tr.dataset.id)

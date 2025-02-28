@@ -16,4 +16,8 @@ module.exports = {
     "prefer-const": "error",
     "no-console": ["error", { allow: ["warn", "error"] }],
   },
+  globals: {
+    gettext: true,
+    settings_COUNTRY: true,
+  },
 }

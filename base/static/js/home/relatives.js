@@ -3,18 +3,18 @@ import { DataTable } from "simple-datatables"
 import { get, getJson, dateCell, ContextMenu } from "../tools"
 
 const DISPLAY_VALUES = {
-  father: "Father",
-  second_father: "2nd father",
-  non_bio_father: "Non-bio father",
-  stepfather: "Stepfather",
-  mother: "Mother",
-  second_mother: "2nd Mother",
-  non_bio_mother: "Non-bio mother",
-  stepmother: "Stepmother",
-  sibling: "Sibling",
-  same_father: "Same father",
-  same_mother: "Same mother",
-  unknown: "Unknown",
+  father: gettext("Father"),
+  second_father: gettext("2nd father"),
+  non_bio_father: gettext("Non-bio father"),
+  stepfather: gettext("Stepfather"),
+  mother: gettext("Mother"),
+  second_mother: gettext("2nd Mother"),
+  non_bio_mother: gettext("Non-bio mother"),
+  stepmother: gettext("Stepmother"),
+  sibling: gettext("Sibling"),
+  same_father: gettext("Same father"),
+  same_mother: gettext("Same mother"),
+  unknown: gettext("Unknown"),
 }
 
 export class Relatives {
@@ -49,12 +49,12 @@ export class Relatives {
       type: "string",
       data: {
         headings: [
-          "ID",
-          `Relatives: <a class="plus-button create-relative" href="/base/relative/create/${this.copsacId}/">+</a>`,
-          "Relation",
-          "Twin",
-          "Deathdate",
-          "Comments",
+          gettext("ID"),
+          `${gettext("Relatives:")} <a class="plus-button create-relative" href="/base/relative/create/${this.copsacId}/">+</a>`,
+          gettext("Relation"),
+          gettext("Twin"),
+          gettext("Deathdate"),
+          gettext("Comments"),
         ],
         data: relatives,
       },
@@ -115,7 +115,7 @@ export class Relatives {
     )
     if (
       confirm(
-        `Are you sure you want to delete relative: ${relative.cells[1].data}`,
+        `${gettext("Are you sure you want to delete relative:")} ${relative.cells[1].data}`,
       )
     ) {
       return get(`/api/delete_relative/${id}/`).then(() => {
@@ -169,7 +169,7 @@ export class Relatives {
 
     const menuItems = [
       {
-        label: "Edit relative",
+        label: gettext("Edit relative"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id
@@ -179,7 +179,7 @@ export class Relatives {
     ]
     if (document.body.dataset.canModerate) {
       menuItems.push({
-        label: "Delete relative",
+        label: gettext("Delete relative"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id

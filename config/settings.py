@@ -181,6 +181,13 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
+COUNTRY = "DK"  # Main country
+
+RSPACK_CONFIG_TEMPLATE = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "rspack.config.template.js",
+)
+
 try:
     from .local_settings import *  # noqa: F401, F403
 except ImportError:

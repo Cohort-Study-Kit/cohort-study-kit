@@ -39,10 +39,4 @@ DATABASES = {
     },
 }
 
-OLD_DATABASE = {
-    "HOST": "localhost",
-    "PORT": 3306,
-    "USER": "old_abc",
-    "NAME": "old_abc",
-    "PASSWORD": "password",
-}
+COUNTRY = "DK"  # Main country

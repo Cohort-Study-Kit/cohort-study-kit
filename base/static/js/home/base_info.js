@@ -15,7 +15,7 @@ export class BaseInfo {
   getProband() {
     return getJson(`/api/get_proband/${this.copsacId}/`).then(({ json }) => {
       if (!json.proband) {
-        alert("There is no proband in the system with this ID.")
+        alert(gettext("There is no proband in the system with this ID."))
         return
       }
       this.proband = json.proband
@@ -25,7 +25,7 @@ export class BaseInfo {
   render() {
     this.el.innerHTML = `${this.proband.name} (Copsac ID: ${this.copsacId}) | Age: ${this.proband.age} | CPR: ${this.proband.cpr} | Status: ${this.proband.status} | Divorced: ${this.proband.divorced}`
     if (this.proband.legal_guardian.length) {
-      this.el.innerHTML += ` | Legal guardian: ${this.proband.legal_guardian}`
+      this.el.innerHTML += ` | ${gettext("Legal guardian:")} ${this.proband.legal_guardian}`
     }
     if (this.proband.status === "passive") {
       this.body.classList.add("passive")

@@ -38,10 +38,10 @@ export class Consent {
     this.table = new DataTable(this.el.lastElementChild, {
       data: {
         headings: [
-          "ID",
-          `Consent forms: <a class="plus-button" href="/base/consent/${this.copsacId}/">+</a>`,
-          "Date",
-          "Status",
+          gettext("ID"),
+          `${gettext("Consent forms")}: <a class="plus-button" href="/base/consent/${this.copsacId}/">+</a>`,
+          gettext("Date"),
+          gettext("Status"),
         ],
         data: consents,
       },
@@ -117,7 +117,7 @@ export class Consent {
 
     const menuItems = [
       {
-        label: "Edit consent",
+        label: gettext("Edit consent"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id

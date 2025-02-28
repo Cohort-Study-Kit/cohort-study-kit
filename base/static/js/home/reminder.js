@@ -23,12 +23,12 @@ export class Reminder {
   render() {
     const outHTML = `<h4>Reminder: <button class="edit">Edit</button></h4>
       <div class="reminder disabled">
-        <textarea placeholder="Currently no reminders for this proband" readonly>${escapeText(
+        <textarea placeholder="${gettext("Currently no reminders for this proband")}" readonly>${escapeText(
           this.value,
         )}</textarea>
         <div class="mx-1 my-2">
-          <button class="btn btn-sm btn-primary save">Save</button>
-          <button class="btn btn-sm btn-secondary cancel">Cancel</button>
+          <button class="btn btn-sm btn-primary save">${gettext("Save")}</button>
+          <button class="btn btn-sm btn-secondary cancel">${gettext("Cancel")}</button>
         </div>
       </div>`
     this.el.innerHTML = outHTML
@@ -75,7 +75,9 @@ export class Reminder {
         if (
           (text !== this.value &&
             confirm(
-              "Do you really want to cancel your changes to the reminder?",
+              gettext(
+                "Do you really want to cancel your changes to the reminder?",
+              ),
             )) ||
           text === this.value
         ) {

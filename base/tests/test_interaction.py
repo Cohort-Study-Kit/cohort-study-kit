@@ -707,9 +707,14 @@ class InteractionTest(VerboseLiveServerTestCase):
         hometype_select_object = Select(hometype_select)
         hometype_select_object.select_by_visible_text("Apartment")
 
-        liveswith_select = self.driver.find_element(By.ID, "id_lives_with")
-        liveswith_select_object = Select(liveswith_select)
-        liveswith_select_object.select_by_visible_text("None of the biological parents")
+        parental_presence_select = self.driver.find_element(
+            By.ID,
+            "id_parental_presence",
+        )
+        parental_presence_select_object = Select(parental_presence_select)
+        parental_presence_select_object.select_by_visible_text(
+            "None of the biological parents",
+        )
 
         country_select = self.driver.find_element(By.ID, "id_country")
         country_select_object = Select(country_select)

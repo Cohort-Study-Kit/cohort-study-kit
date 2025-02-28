@@ -18,7 +18,7 @@ export class Address {
   }
 
   render() {
-    const outHTML = `<h4>Addresses: <a class="plus-button create-address" href="/address/${
+    const outHTML = `<h4>${gettext("Addresses")}: <a class="plus-button create-address" href="/address/${
       this.copsacId
     }/">+</a></h4>
     <div class="address-box">
@@ -27,7 +27,7 @@ export class Address {
           return `<div class="textblock"> <b> ${address.street}, ${
             address.postcode
           } ${address.city}${address.province ? `, ${address.province}` : ""}${
-            address.country === "DK" ? "" : `, ${address.country}`
+            address.country === settings_COUNTRY ? "" : `, ${address.country}`
           } </b> </div>
           ${
             address.home_type

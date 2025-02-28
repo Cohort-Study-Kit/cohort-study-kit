@@ -11,7 +11,7 @@ HOME_TYPE_CHOICES = [
     ("terrace_house", "Terrace house"),
 ]
 
-LIVES_WITH_CHOICES = [
+PARENTAL_PRESENCE_CHOICES = [
     ("both_parents", "Both parents"),
     ("father", "Father"),
     ("mother", "Mother"),
@@ -44,7 +44,10 @@ class Address(models.Model):
     email_father = models.EmailField(blank=True)
     email_mother = models.EmailField(blank=True)
     abcmailaddress = models.EmailField(blank=True)
-    lives_with = models.CharField(max_length=255, choices=LIVES_WITH_CHOICES)
+    parental_presence = models.CharField(
+        max_length=255,
+        choices=PARENTAL_PRESENCE_CHOICES,
+    )
     comments = models.CharField(blank=True, max_length=1000)
     is_deleted = models.BooleanField(default=False)
 

@@ -33,10 +33,10 @@ export class Note {
     let outHTML =
       '<h4>Notes: <button class="edit add-note">+</button></h4><div class="proband-notes-box">'
     outHTML += `<div class="note hidden">
-        <textarea data-note-id="0" placeholder="Write a new note here" id="new_note"></textarea>
+        <textarea data-note-id="0" placeholder="${gettext("Write a new note here")}" id="new_note"></textarea>
         <div class="mx-1 my-2">
-          <button class="btn btn-sm btn-primary save">Save</button>
-          <button class="btn btn-sm btn-secondary cancel">Cancel</button>
+          <button class="btn btn-sm btn-primary save">${gettext("Save")}</button>
+          <button class="btn btn-sm btn-secondary cancel">${gettext("Cancel")}</button>
         </div>
       </div>`
     outHTML += this.notes
@@ -45,13 +45,13 @@ export class Note {
           note.date
         }">${dateHTMLReadonly(
           note.date,
-        )}</span><button class="edit edit-note">Edit</button>
+        )}</span><button class="edit edit-note">${gettext("Edit")}</button>
           <textarea data-note-id="${note.id}" readonly>${escapeText(
             note.note,
           )}</textarea>
           <div class="mx-1 my-2">
-            <button class="btn btn-sm btn-primary save">Save</button>
-            <button class="btn btn-sm btn-secondary cancel">Cancel</button>
+            <button class="btn btn-sm btn-primary save">${gettext("Save")}</button>
+            <button class="btn btn-sm btn-secondary cancel">${gettext("Cancel")}</button>
           </div>
         </div>`,
       )
@@ -151,7 +151,7 @@ export class Note {
           textarea.value = ""
           this.updateNote(noteId, noteText)
         } else {
-          if (confirm("Do you really want to change this note?")) {
+          if (confirm(gettext("Do you really want to change this note?"))) {
             this.updateNote(noteId, noteText, noteDate)
             noteDiv.classList.add("disabled")
             textarea.setAttribute("readonly", "true")
@@ -172,7 +172,11 @@ export class Note {
             noteDateValue = noteDateDiv.dataset.date
           if (noteText !== oldNote.note || noteDateValue !== oldNote.date) {
             if (
-              confirm("Do you really want to cancel your changes to this note?")
+              confirm(
+                gettext(
+                  "Do you really want to cancel your changes to this note?",
+                ),
+              )
             ) {
               textarea.value = oldNote.note
               noteDateDiv.dataset.date = oldNote.date
@@ -187,7 +191,9 @@ export class Note {
           }
         } else if (
           (noteText.length &&
-            confirm("Do you really want to cancel writing this note?")) ||
+            confirm(
+              gettext("Do you really want to cancel writing this note?"),
+            )) ||
           !noteText.length
         ) {
           textarea.value = ""

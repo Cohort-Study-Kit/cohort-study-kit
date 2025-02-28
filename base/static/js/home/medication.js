@@ -416,7 +416,7 @@ export class Medication {
 
     const menuItems = [
       {
-        label: "Edit medication",
+        label: gettext("Edit medication"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           const id = tr.dataset.id
@@ -440,7 +440,7 @@ export class Medication {
         },
       },
       {
-        label: "Delete medication",
+        label: gettext("Delete medication"),
         callback: (event) => {
           const tr = event.target.closest("tr")
           if (!tr) {
