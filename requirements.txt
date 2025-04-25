@@ -18,3 +18,4 @@ selenium==4.28.1
 webdriver-manager==4.0.2
 nodejs-wheel==22.14.0
 pip>=25.0.1
+watchdog==6.0.0
