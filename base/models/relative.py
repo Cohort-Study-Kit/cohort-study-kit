@@ -20,6 +20,7 @@ class RelativeTypes(models.TextChoices):
     SIBLING = "sibling", "Sibling"
     SAME_FATHER = "same_father", "Half-sibling, same father"
     SAME_MOTHER = "same_mother", "Half-sibling, same mother"
+    NON_BIO_SIBLING = "non_bio_sibling", "Non-biological sibling"
 
     UNKNOWN = "unknown", "Unknown"
 
@@ -144,7 +145,7 @@ class Relative(models.Model):
     comments = models.TextField(default=None, null=True)
     old_rel_id = models.IntegerField(default=None, unique=True, null=True, blank=True)
     relation_type = models.CharField(
-        max_length=14,
+        max_length=15,
         choices=RelativeTypes.choices,
         default=RelativeTypes.UNKNOWN,
     )
