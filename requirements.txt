@@ -1,4 +1,4 @@
-crispy-bootstrap5==2024.10
+crispy-bootstrap5==2025.4
 Django==5.1.6
 django-allauth==65.7.0
 django-browser-reload==1.18.0
