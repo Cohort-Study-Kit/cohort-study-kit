@@ -216,6 +216,7 @@ UNIT_CHOICES = [
     ("mcg", "mcg"),
     ("ml", "ml"),
     ("U", "U"),
+    ("mcmol", "mcmol"),
 ]
 
 

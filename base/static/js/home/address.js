@@ -31,42 +31,42 @@ export class Address {
           } </b> </div>
           ${
             address.home_type
-              ? `<div class="textblock"> <b> Home type: </b> ${address.home_type} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Home type")}: </b> ${address.home_type} </div>`
               : ""
           }
           ${
             address.phone
-              ? `<div class="textblock"> <b> Phone: </b> ${address.phone} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Phone")}: </b> ${address.phone} </div>`
               : ""
           }
           ${
             address.cellphone_mother
-              ? `<div class="textblock"> <b> Cellphone mother: </b> ${address.cellphone_mother} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Cellphone mother")}: </b> ${address.cellphone_mother} </div>`
               : ""
           }
           ${
             address.cellphone_father
-              ? `<div class="textblock"> <b> Cellphone father: </b> ${address.cellphone_father} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Cellphone father")}: </b> ${address.cellphone_father} </div>`
               : ""
           }
           ${
             address.email_mother
-              ? `<div class="textblock"> <b> Email mother: </b> ${address.email_mother} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Email mother")}: </b> ${address.email_mother} </div>`
               : ""
           }
           ${
             address.email_father
-              ? `<div class="textblock"> <b> Email father: </b> ${address.email_father} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Email father")}: </b> ${address.email_father} </div>`
               : ""
           }
           ${
             address.comments
-              ? `<div class="textblock"> <b> Comments: </b> ${address.comments} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Comments")}: </b> ${address.comments} </div>`
               : ""
           }
           ${
             address.start_date
-              ? `<div class="textblock"> <b> Move in: </b> ${address.start_date} </div>`
+              ? `<div class="textblock"> <b> ${gettext("Move in")}: </b> ${address.start_date} </div>`
               : ""
           }
           `
