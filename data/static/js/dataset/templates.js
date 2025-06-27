@@ -586,7 +586,7 @@ const renderContentObject = (
                       : contentObject.tabindex
                   }"
                   type="text"
-                  value="${value}"
+                  value="${he.encode(value)}"
                   ${maindataVisit?.readonly ? "disabled" : ""}>
               </div>
             </div>

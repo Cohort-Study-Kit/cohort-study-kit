@@ -5,15 +5,16 @@ import { get, getJson, dateCell, ContextMenu } from "../tools"
 const DISPLAY_VALUES = {
   father: gettext("Father"),
   second_father: gettext("2nd father"),
-  non_bio_father: gettext("Non-bio father"),
+  non_bio_father: gettext("Non-biological father"),
   stepfather: gettext("Stepfather"),
   mother: gettext("Mother"),
   second_mother: gettext("2nd Mother"),
-  non_bio_mother: gettext("Non-bio mother"),
+  non_bio_mother: gettext("Non-biological mother"),
   stepmother: gettext("Stepmother"),
   sibling: gettext("Sibling"),
   same_father: gettext("Same father"),
   same_mother: gettext("Same mother"),
+  non_bio_sibling: gettext("Non-biological sibling"),
   unknown: gettext("Unknown"),
 }
 
