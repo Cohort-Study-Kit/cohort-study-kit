@@ -56,3 +56,4 @@ updated_views.sql
 /utils/import/csv/*.csv
 /utils/import/xlsx/*.xlsx
 /config/local_settings.py
+/copsac2000

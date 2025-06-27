@@ -98,7 +98,6 @@ REASON_FOR_WITHDRAWAL_CHOICES = [
 class Proband(models.Model):
     cpr = models.CharField(
         default=None,
-        unique=True,
         blank=True,
         null=True,
         max_length=10,
