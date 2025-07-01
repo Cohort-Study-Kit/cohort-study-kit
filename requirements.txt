@@ -16,6 +16,6 @@ pre-commit==4.2.0
 python-dotenv==1.1.0
 selenium==4.32.0
 webdriver-manager==4.0.2
-nodejs-wheel==22.15.0
+nodejs-wheel==22.17.0
 pip>=25.0.1
 watchdog==6.0.0
