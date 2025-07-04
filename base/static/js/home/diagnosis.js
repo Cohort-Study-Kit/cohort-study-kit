@@ -17,14 +17,16 @@ export class Diagnosis {
 
   getData() {
     return getJson(`/api/diagnosis/get/${this.copsacId}/`).then(({ json }) => {
-      return json.diagnoses.map((diagnosis) => [
-        diagnosis.id,
-        diagnosis.lock_status,
-        diagnosis.icd_code__description,
-        diagnosis.icd_code__code,
-        dateCell(diagnosis.start_date),
-        dateCell(diagnosis.end_date),
-      ])
+      return json.diagnoses
+        .filter((diagnosis) => diagnosis.recipient === "proband")
+        .map((diagnosis) => [
+          diagnosis.id,
+          diagnosis.lock_status,
+          diagnosis.icd_code__description,
+          diagnosis.icd_code__code,
+          dateCell(diagnosis.start_date),
+          dateCell(diagnosis.end_date),
+        ])
     })
   }
 

@@ -25,19 +25,21 @@ export class Medication {
   getData() {
     return getJson(`/api/medication/get/${this.copsacId}/`).then(({ json }) => {
       this.birthdate = new Date(json.birthdate)
-      this.medications = json.medications.map((medication) => ({
-        cells: [
-          { data: medication.id },
-          { data: medication.lock_status },
-          { data: medication.atc_code__description },
-          { data: medication.atc_code__code },
-          dateCell(medication.start_date),
-          dateCell(medication.end_date),
-          {
-            data: `${medication.dose} ${medication.unit} ${medication.frequency} ${medication.period} ${medication.route} ${medication.route_spec}`,
-          },
-        ],
-      }))
+      this.medications = json.medications
+        .filter((medication) => medication.recipient === "proband")
+        .map((medication) => ({
+          cells: [
+            { data: medication.id },
+            { data: medication.lock_status },
+            { data: medication.atc_code__description },
+            { data: medication.atc_code__code },
+            dateCell(medication.start_date),
+            dateCell(medication.end_date),
+            {
+              data: `${medication.dose} ${medication.unit} ${medication.frequency} ${medication.period} ${medication.route} ${medication.route_spec}`,
+            },
+          ],
+        }))
     })
   }
 

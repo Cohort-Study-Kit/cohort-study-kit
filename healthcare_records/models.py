@@ -67,7 +67,7 @@ class Diagnosis(models.Model):
     proband = models.ForeignKey("base.Proband", on_delete=models.CASCADE)
     recipient = models.CharField(
         blank=False,
-        choices=[("proband", "Proband"), ("mother", "Proband's mother")],
+        choices=[("proband", "Proband"), ("mother", "Mother of proband")],
         max_length=7,
         default="proband",
     )
@@ -241,7 +241,7 @@ class Medication(models.Model):
     )
     recipient = models.CharField(
         blank=False,
-        choices=[("proband", "Proband"), ("mother", "Proband's mother")],
+        choices=[("proband", "Proband"), ("mother", "Mother of proband")],
         max_length=7,
         default="proband",
     )

@@ -1,5 +1,6 @@
 import { DataTable } from "simple-datatables"
 import { getJson, dateCell } from "../tools/index.js"
+import { displayRecipient, recipientOptions } from "./helpers.js"
 
 export class MedicationOverview {
   constructor() {
@@ -26,6 +27,7 @@ export class MedicationOverview {
           medication.id,
           dateCell(medication.start_date),
           dateCell(medication.end_date),
+          displayRecipient(medication.recipient),
           medication.atc_code__code,
           medication.atc_code__description,
           medication.atc_code__code.slice(0, 3) === "J07" ? "Yes" : "No",
@@ -44,6 +46,7 @@ export class MedicationOverview {
           "ID",
           "Start",
           "End",
+          "Recipient",
           "ATC Code",
           "Medication",
           "Is vaccine",
@@ -75,6 +78,10 @@ export class MedicationOverview {
         {
           select: [1, 2],
           width: "50px",
+        },
+        {
+          select: 3,
+          filter: recipientOptions,
         },
       ],
     })

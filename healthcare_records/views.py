@@ -105,6 +105,7 @@ def get_diagnoses(request, copsac_id, current=False):
     response["diagnoses"] = list(
         diagnoses.values(
             "id",
+            "recipient",
             "lock_status",
             "icd_code__code",
             "icd_code__description",
@@ -248,6 +249,7 @@ def get_medications(request, copsac_id, current=False):
     response["medications"] = list(
         medications.values(
             "id",
+            "recipient",
             "lock_status",
             "atc_code__code",
             "atc_code__description",

@@ -1,5 +1,6 @@
 import { DataTable } from "simple-datatables"
 import { getJson, dateCell } from "../tools/index.js"
+import { displayRecipient, recipientOptions } from "./helpers.js"
 
 export class DiagnosisOverview {
   constructor() {
@@ -26,6 +27,7 @@ export class DiagnosisOverview {
           diagnosis.id,
           dateCell(diagnosis.start_date),
           dateCell(diagnosis.end_date),
+          displayRecipient(diagnosis.recipient),
           diagnosis.icd_code__code,
           diagnosis.icd_code__description,
           diagnosis.is_chronic,
@@ -44,6 +46,7 @@ export class DiagnosisOverview {
           "ID",
           "Start",
           "End",
+          "Recipient",
           "ICD 10",
           "Diagnosis",
           "Chronic",
@@ -75,6 +78,10 @@ export class DiagnosisOverview {
         {
           select: [1, 2],
           width: "50px",
+        },
+        {
+          select: 3,
+          filter: recipientOptions,
         },
       ],
     })
