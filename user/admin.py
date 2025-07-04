@@ -9,6 +9,26 @@ from config.backoffice import backoffice
 
 @admin.register(User)
 class UserAdmin(DefaultUserAdmin):
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_staff",
+        "is_moderator",
+        "date_joined",
+    )
+    list_filter = (
+        "is_active",
+        "is_staff",
+        "is_moderator",
+        "is_superuser",
+        "date_joined",
+    )
+    search_fields = ("username", "first_name", "last_name", "email")
+    ordering = ("-date_joined",)
+
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
