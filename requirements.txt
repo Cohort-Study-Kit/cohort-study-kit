@@ -14,7 +14,7 @@ JSON-minify==0.3.0
 mysqlclient==2.2.7
 pre-commit==4.2.0
 python-dotenv==1.1.1
-selenium==4.34.0
+selenium==4.34.1
 webdriver-manager==4.0.2
 nodejs-wheel==22.17.0
 pip>=25.0.1
