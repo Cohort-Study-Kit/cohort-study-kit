@@ -217,6 +217,7 @@ UNIT_CHOICES = [
     ("ml", "ml"),
     ("U", "U"),
     ("mcmol", "mcmol"),
+    ("dr", "drops"),
 ]
 
 
