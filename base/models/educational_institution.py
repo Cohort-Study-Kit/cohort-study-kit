@@ -12,6 +12,9 @@ EDUCATIONAL_INSTITUTION_CHOICES = [
     ("school", "School"),
     ("after_school_care", "After school care"),
     ("private", "Private"),
+    ("boarding_school", "Boarding school"),
+    ("workplace", "Workplace"),
+    ("club", "Club"),
     ("other", "Other"),
     ("unknown", "Unknown"),
 ]
