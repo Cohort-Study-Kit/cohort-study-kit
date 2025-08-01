@@ -2,6 +2,7 @@ from .address import Address
 from .consent import Consent
 from .consent import ConsentType
 from .educational_institution import EducationalInstitution
+from .educational_institution import EducationalInstitutionStats
 from .helpers import current_year
 from .note import Note
 from .proband import Cohort
