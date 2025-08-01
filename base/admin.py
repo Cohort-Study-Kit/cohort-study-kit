@@ -8,6 +8,7 @@ from .models import Cohort
 from .models import Consent
 from .models import ConsentType
 from .models import EducationalInstitution
+from .models import EducationalInstitutionStats
 from .models import Note
 from .models import Proband
 from .models import RecruitingCenter
@@ -125,3 +126,6 @@ class EducationalInstitutionAdmin(SimpleHistoryAdmin):
 
 
 backoffice.register(EducationalInstitution, EducationalInstitutionAdmin)
+
+admin.site.register(EducationalInstitutionStats, SimpleHistoryAdmin)
+backoffice.register(EducationalInstitutionStats, SimpleHistoryAdmin)
