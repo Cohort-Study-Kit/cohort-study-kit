@@ -53,7 +53,7 @@ class EducationalInstitution(models.Model):
         return f"{self.street}, {self.city}, {self.country}  ({self.proband.copsac_id})"
 
 
-class EducationInstitutionStats(models.Model):
+class EducationalInstitutionStats(models.Model):
     institution = models.ForeignKey(
         EducationalInstitution,
         on_delete=models.CASCADE,

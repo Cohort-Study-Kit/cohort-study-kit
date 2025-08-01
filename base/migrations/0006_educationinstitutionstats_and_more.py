@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="EducationInstitutionStats",
+            name="EducationalInstitutionStats",
             fields=[
                 (
                     "id",
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name="HistoricalEducationInstitutionStats",
+            name="HistoricalEducationalInstitutionStats",
             fields=[
                 (
                     "id",
