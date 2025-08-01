@@ -17,6 +17,7 @@ __all__ = [
     "current_year",
     "Consent",
     "EducationalInstitution",
+    "EducationalInstitutionStats",
     "Note",
     "Proband",
     "Cohort",
