@@ -51,3 +51,23 @@ class EducationalInstitution(models.Model):
         if self.name:
             return f"{self.name}, {self.city}, {self.country}"
         return f"{self.street}, {self.city}, {self.country}  ({self.proband.copsac_id})"
+
+
+class EducationInstitutionStats(models.Model):
+    institution = models.ForeignKey(
+        EducationalInstitution,
+        on_delete=models.CASCADE,
+        related_name="stats",
+    )
+    build_year = models.IntegerField(blank=True, null=True)
+    room_size = models.IntegerField(blank=True, null=True)
+    number_children = models.IntegerField(blank=True, null=True)
+    time_spent = models.IntegerField(blank=True, null=True)
+    smoking = models.BooleanField(blank=True, null=True)
+    number_smokers = models.IntegerField(blank=True, null=True)
+
+    # Django-simple-history package
+    history = HistoricalRecords(table_name="zz_base_institution_stats")
+
+    def __str__(self):
+        return str(self.institution)
