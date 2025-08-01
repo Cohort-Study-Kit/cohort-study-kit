@@ -71,3 +71,7 @@ class EducationalInstitutionStats(models.Model):
 
     def __str__(self):
         return str(self.institution)
+
+    # Define plural name for EducationalInstitutionStats
+    class Meta:
+        verbose_name_plural = "Educational Institution Stats"
