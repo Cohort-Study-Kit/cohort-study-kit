@@ -1,5 +1,5 @@
 crispy-bootstrap5==2025.6
-Django==5.1.7
+Django==5.2.5
 django-allauth==65.9.0
 django-browser-reload==1.18.0
 django-crispy-forms==2.4
@@ -17,5 +17,5 @@ python-dotenv==1.1.1
 selenium==4.34.0
 webdriver-manager==4.0.2
 nodejs-wheel==22.17.0
-pip>=25.0.1
+pip>=25.2
 watchdog==6.0.0
