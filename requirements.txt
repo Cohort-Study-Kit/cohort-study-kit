@@ -6,7 +6,7 @@ django-crispy-forms==2.4
 django-extensions==4.1
 django-json-widget==2.0.1
 django-jsonform==2.23.2
-django-mysql==4.17.0
+django-mysql==4.18.0
 django-npm-mjs==3.2.1
 django-simple-history==3.10.1
 gunicorn==23.0.0
