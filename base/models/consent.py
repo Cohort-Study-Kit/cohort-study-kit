@@ -31,7 +31,22 @@ class Consent(models.Model):
         ("ongoing", "Ongoing"),
         ("rejected", "Rejected"),
     )
-    date = models.DateField(default=datetime.date.today, null=True, blank=True)
+    date = models.DateField(
+        default=datetime.date.today,
+        null=True,
+        blank=True,
+        help_text="Date consent was given",
+    )
+    applied_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date from when consent was applied",
+    )
+    withdrawn_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date from when consent was withdrawn (if at all)",
+    )
     is_deleted = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=9, choices=STATUS_CHOICES)

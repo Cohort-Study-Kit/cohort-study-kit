@@ -43,7 +43,16 @@ class Address(models.Model):
     workphone2 = models.CharField(blank=True, max_length=72)
     email_father = models.EmailField(blank=True)
     email_mother = models.EmailField(blank=True)
+    email_proband = models.EmailField(blank=True, null=True)
+
     abcmailaddress = models.EmailField(blank=True)
+    size = models.IntegerField(blank=True, null=True, help_text="Size in square meters")
+    build_year = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text="Year of construction",
+    )
+
     parental_presence = models.CharField(
         max_length=255,
         choices=PARENTAL_PRESENCE_CHOICES,
