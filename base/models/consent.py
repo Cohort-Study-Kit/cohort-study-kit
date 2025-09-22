@@ -8,7 +8,7 @@ from simple_history.models import HistoricalRecords
 
 
 class ConsentType(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=61)
     cohort = models.ForeignKey(
         "base.Cohort",
         on_delete=models.CASCADE,
