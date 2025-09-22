@@ -171,6 +171,8 @@ class Proband(models.Model):
     proband_id = models.CharField(
         default=None,
         max_length=20,
+        null=True,
+        blank=True,
     )
     parents_divorced = models.BooleanField(default=False)
     place_of_living = models.CharField(
