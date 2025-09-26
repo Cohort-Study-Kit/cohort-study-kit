@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.utils.translation import ngettext
 from simple_history.admin import SimpleHistoryAdmin
 
+from .admin_filters import ProbandFilter
 from .admin_mixins import SoftDeleteAdminMixin
 from .models import Address
 from .models import Cohort
@@ -23,6 +24,7 @@ class RelativeAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_select_related = ["fk_proband"]
     list_display = ["fk_proband", "name", "relation_type", "get_deleted_status"]
     search_fields = ["fk_proband__copsac_id", "firstname", "lastname"]
+    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
 
 
 backoffice.register(Relative, RelativeAdmin)
@@ -32,7 +34,7 @@ backoffice.register(Relative, RelativeAdmin)
 class NoteAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_display = ["fk_proband", "date", "get_deleted_status"]
     search_fields = ["fk_proband__copsac_id"]
-    list_filter = ["date"]
+    list_filter = [("fk_proband__copsac_id", ProbandFilter), "date"]
 
 
 backoffice.register(Note, NoteAdmin)
@@ -82,7 +84,11 @@ backoffice.register(ConsentType, ConsentTypeAdmin)
 class ConsentAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
     search_fields = ["fk_proband__copsac_id", "fk_consent_type__name"]
-    list_filter = ["status", "fk_consent_type"]
+    list_filter = [
+        ("fk_proband__copsac_id", ProbandFilter),
+        "status",
+        "fk_consent_type",
+    ]
 
 
 backoffice.register(Consent, ConsentAdmin)
@@ -127,7 +133,7 @@ class AddressAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
         "get_deleted_status",
     ]
     search_fields = ["street", "city", "country", "comments"]
-    list_filter = ["start_date", "end_date", "proband__copsac_id"]
+    list_filter = [("proband__copsac_id", ProbandFilter), "start_date", "end_date"]
 
 
 backoffice.register(Address, AddressAdmin)
@@ -146,7 +152,12 @@ class EducationalInstitutionAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
         "get_deleted_status",
     ]
     search_fields = ["name", "street", "city", "country", "comments"]
-    list_filter = ["start_date", "end_date", "type", "proband__copsac_id"]
+    list_filter = [
+        ("proband__copsac_id", ProbandFilter),
+        "start_date",
+        "end_date",
+        "type",
+    ]
 
 
 backoffice.register(EducationalInstitution, EducationalInstitutionAdmin)

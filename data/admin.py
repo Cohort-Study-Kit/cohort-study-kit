@@ -24,6 +24,7 @@ from .models import HelpDoc
 from .models import Visit
 from .models import VisitType
 from .widgets import DatasetFormWidget
+from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
 from base.models import Proband
 from config.backoffice import backoffice
@@ -458,6 +459,7 @@ class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
         "fk_visit_type",
         "get_deleted_status",
     ]
+    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
     inlines = [
         ExaminationInline,
     ]

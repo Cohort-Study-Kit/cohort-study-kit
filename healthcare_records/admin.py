@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
 from config.backoffice import backoffice
 from healthcare_records.models import ATCCode
@@ -18,7 +19,7 @@ class DiagnosisAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
         "get_deleted_status",
     ]
     search_fields = ["proband__copsac_id", "icd_code__code", "icd_code__description"]
-    list_filter = ["is_chronic", "adverse_event"]
+    list_filter = [("proband__copsac_id", ProbandFilter), "is_chronic", "adverse_event"]
     date_hierarchy = "start_date"
     actions = ["mark_as_deleted"]
 
@@ -60,7 +61,7 @@ class MedicationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
         "get_deleted_status",
     ]
     search_fields = ["atc_code__code", "proband__copsac_id"]
-    list_filter = []
+    list_filter = [("proband__copsac_id", ProbandFilter)]
     actions = ["mark_as_deleted"]
 
     @admin.action(

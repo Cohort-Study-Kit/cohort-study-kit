@@ -1,0 +1,41 @@
+{% load i18n %}
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<ul>
+  <li>
+    <form method="get" action="" id="proband-filter-form">
+      {% for k, v in cl.get_filters_params.items %}
+        {% if k != 'proband_copsac_id' %}
+          <input type="hidden" name="{{ k }}" value="{{ v }}">
+        {% endif %}
+      {% endfor %}
+      <input
+        type="text"
+        name="{{ spec.field_path }}"
+        value="{{ spec.lookup_val|default:'' }}"
+        placeholder="{% trans 'Enter COPSAC ID...' %}"
+        style="width: 120px; margin-right: 5px; padding: 4px;"
+        id="proband-copsac-id-input"
+      >
+      <input type="submit" value="{% trans 'Filter' %}" style="padding: 4px 8px;">
+      {% if spec.lookup_val %}
+        <a href="?{% for k, v in cl.get_filters_params.items %}{% if k != spec.field_path %}{{ k }}={{ v }}&{% endif %}{% endfor %}"
+           style="margin-left: 5px; color: #666; text-decoration: none;">
+          {% trans "Clear" %}
+        </a>
+      {% endif %}
+    </form>
+  </li>
+</ul>
+<script>
+// Optional: Add JavaScript for better UX, like auto-submit on Enter key
+document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('proband-copsac-id-input');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('proband-filter-form').submit();
+            }
+        });
+    }
+});
+</script>
