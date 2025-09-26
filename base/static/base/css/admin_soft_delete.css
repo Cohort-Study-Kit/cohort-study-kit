@@ -1,0 +1,15 @@
+td.field-get_deleted_status, th.column-get_deleted_status {
+    display: none;
+}
+
+tr:has(span.deleted-status) {
+    background-color: #f8d7da !important;
+}
+
+tr:has(span.deleted-status) td, tr:has(span.deleted-status) a {
+    color: #dc3545 !important;
+}
+
+html[data-theme="dark"] tr:has(span.deleted-status) a {
+    text-decoration: underline;
+}
