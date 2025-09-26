@@ -3,14 +3,19 @@ from inspect import signature
 from django import forms
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin import helpers
+from django.db import transaction
 from django.db.models import CharField
 from django.db.models import F
 from django.forms import TextInput
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils.translation import ngettext
 from django_json_widget.widgets import JSONEditorWidget
 from simple_history.admin import SimpleHistoryAdmin
 
+from base.admin_mixins import SoftDeleteAdminMixin
 from .models import Cell
 from .models import Column
 from .models import Dataset
@@ -402,8 +407,43 @@ class ExaminationInline(admin.TabularInline):
     model = Examination
 
 
+class MergeVisitsForm(forms.Form):
+    keep_visit = forms.ModelChoiceField(
+        queryset=Visit.objects.none(),
+        widget=forms.RadioSelect,
+        empty_label=None,
+        label="Select the visit to keep",
+    )
+
+    def __init__(self, *args, visits=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if visits is not None:
+            # Convert list to queryset if needed
+            if isinstance(visits, list):
+                visit_ids = [visit.pk for visit in visits]
+                self.fields['keep_visit'].queryset = Visit.objects.filter(pk__in=visit_ids)
+            else:
+                self.fields['keep_visit'].queryset = visits
+            # Set initial value to the first visit
+            if visits:
+                if isinstance(visits, list):
+                    self.fields['keep_visit'].initial = visits[0].pk
+                else:
+                    first_visit = visits.first()
+                    if first_visit:
+                        self.fields['keep_visit'].initial = first_visit.pk
+
+
 @admin.register(Visit)
-class VisitAdmin(admin.ModelAdmin):
+class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
+    # Add the custom URL for the merge form
+    def get_urls(self):
+        from django.urls import path
+        urls = super().get_urls()
+        custom_urls = [
+            path('merge/', self.merge_form_view, name='data_visit_merge'),
+        ]
+        return custom_urls + urls
     list_select_related = [
         "fk_proband",
         "fk_visit_type",
@@ -411,10 +451,104 @@ class VisitAdmin(admin.ModelAdmin):
     list_display = [
         "fk_proband",
         "fk_visit_type",
+        "get_deleted_status",
     ]
     inlines = [
         ExaminationInline,
     ]
+    actions = ["merge_visits"]
+
+    @admin.action(description="Merge selected visits")
+    def merge_visits(self, request, queryset):
+        visits = list(queryset)
+
+        # Check if we have at least 2 visits
+        if len(visits) < 2:
+            self.message_user(
+                request,
+                "You need to select at least 2 visits to merge.",
+                messages.WARNING,
+            )
+            return
+
+        # Check if all visits belong to the same proband
+        probands = {visit.fk_proband for visit in visits}
+        if len(probands) > 1:
+            self.message_user(
+                request,
+                "All selected visits must belong to the same proband.",
+                messages.ERROR,
+            )
+            return
+
+        # Store the selected visit IDs in the session
+        request.session['merge_visit_ids'] = [visit.pk for visit in visits]
+
+        # Redirect to the merge form view
+        return HttpResponseRedirect(reverse('admin:data_visit_merge'))
+
+    # Custom view for merge form
+    def merge_form_view(self, request):
+        # Get the visit IDs from the session
+        visit_ids = request.session.get('merge_visit_ids', [])
+        if not visit_ids:
+            self.message_user(request, "No visits selected for merging.", messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:data_visit_changelist'))
+
+        # Get the visits
+        visits = list(Visit.objects.filter(pk__in=visit_ids))
+
+        # Check if we have at least 2 visits
+        if len(visits) < 2:
+            self.message_user(request, "You need to select at least 2 visits to merge.", messages.WARNING)
+            return HttpResponseRedirect(reverse('admin:data_visit_changelist'))
+
+        # Check if all visits belong to the same proband
+        probands = {visit.fk_proband for visit in visits}
+        if len(probands) > 1:
+            self.message_user(request, "All selected visits must belong to the same proband.", messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:data_visit_changelist'))
+
+        if request.method == 'POST':
+            form = MergeVisitsForm(request.POST, visits=visits)
+            if form.is_valid():
+                keep_visit = form.cleaned_data['keep_visit']
+
+                # Get visits to delete (all except the one we're keeping)
+                delete_visits = [v for v in visits if v.pk != keep_visit.pk]
+
+                # Perform the merge in a transaction
+                with transaction.atomic():
+                    # Reassign all examinations from delete_visits to keep_visit
+                    Examination.objects.filter(fk_visit__in=delete_visits).update(fk_visit=keep_visit)
+
+                    # Mark delete_visits as deleted
+                    Visit.objects.filter(pk__in=[v.pk for v in delete_visits]).update(is_deleted=True)
+
+                self.message_user(
+                    request,
+                    f"Successfully merged {len(delete_visits)} visits into {keep_visit}.",
+                    messages.SUCCESS,
+                )
+                # Clean up session
+                if 'merge_visit_ids' in request.session:
+                    del request.session['merge_visit_ids']
+                return HttpResponseRedirect(reverse('admin:data_visit_changelist'))
+            else:
+                # Form is not valid, show errors
+                pass
+        else:
+            form = MergeVisitsForm(visits=visits)
+
+        context = {
+            'form': form,
+            'visits': visits,
+            'title': 'Merge Visits',
+            'opts': self.model._meta,
+        }
+
+        return render(request, 'admin/data/visit/merge_visits.html', context)
+
 
 
 backoffice.register(Visit, VisitAdmin)
