@@ -326,7 +326,7 @@ class CellInline(admin.TabularInline):
     ordering = [F("fk_column__display_order").asc(nulls_last=True), "fk_column__name"]
 
 
-class ExaminationBackOffice(admin.ModelAdmin):
+class ExaminationBackOffice(SoftDeleteAdminMixin, admin.ModelAdmin):
     list_select_related = [
         "fk_visit",
         "fk_visit__fk_visit_type",
@@ -335,6 +335,7 @@ class ExaminationBackOffice(admin.ModelAdmin):
     list_display = [
         "fk_visit",
         "fk_dataset",
+        "get_deleted_status",
     ]
     raw_id_fields = [
         "fk_visit",
@@ -378,7 +379,7 @@ class ExaminationAdminForm(forms.ModelForm):
 
 
 @admin.register(Examination)
-class ExaminationAdmin(admin.ModelAdmin):
+class ExaminationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     list_select_related = [
         "fk_visit",
         "fk_visit__fk_visit_type",
@@ -387,6 +388,7 @@ class ExaminationAdmin(admin.ModelAdmin):
     list_display = [
         "fk_visit",
         "fk_dataset",
+        "get_deleted_status",
     ]
     raw_id_fields = [
         "fk_visit",

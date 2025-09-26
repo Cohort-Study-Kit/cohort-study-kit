@@ -14,6 +14,7 @@ from .models import Note
 from .models import Proband
 from .models import RecruitingCenter
 from .models import Relative
+from .models import RelativeTypes
 from .models import Site
 from config.backoffice import backoffice
 
@@ -28,8 +29,15 @@ class RelativeAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
 backoffice.register(Relative, RelativeAdmin)
 
 
-admin.site.register(Note, SimpleHistoryAdmin)
-backoffice.register(Note, SimpleHistoryAdmin)
+
+class NoteAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+    list_display = ["fk_proband", "date", "get_deleted_status"]
+    search_fields = ["fk_proband__copsac_id"]
+    list_filter = ["date"]
+
+
+admin.site.register(Note, NoteAdmin)
+backoffice.register(Note, NoteAdmin)
 
 
 @admin.register(ConsentType)
@@ -70,8 +78,15 @@ class ConsentTypeAdmin(SimpleHistoryAdmin):
 
 
 backoffice.register(ConsentType, ConsentTypeAdmin)
-admin.site.register(Consent, SimpleHistoryAdmin)
-backoffice.register(Consent, SimpleHistoryAdmin)
+
+class ConsentAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+    list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
+    search_fields = ["fk_proband__copsac_id", "fk_consent_type__name"]
+    list_filter = ["status", "fk_consent_type"]
+
+
+admin.site.register(Consent, ConsentAdmin)
+backoffice.register(Consent, ConsentAdmin)
 
 
 @admin.register(Proband)
