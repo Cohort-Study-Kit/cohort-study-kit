@@ -457,6 +457,7 @@ class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     list_display = [
         "fk_proband",
         "fk_visit_type",
+        "visit_date",
         "get_deleted_status",
     ]
     list_filter = [("fk_proband__copsac_id", ProbandFilter)]
