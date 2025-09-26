@@ -345,7 +345,7 @@ class ExaminationBackOffice(SoftDeleteAdminMixin, admin.ModelAdmin):
         CellInline,
     ]
 
-    list_filter = ["fk_dataset"]
+    list_filter = [("fk_visit__fk_proband__copsac_id", ProbandFilter), "fk_dataset"]
     form = ExaminationBackOfficeForm
 
     def view_on_site(self, obj):
@@ -397,8 +397,8 @@ class ExaminationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     inlines = [
         CellInline,
     ]
+    list_filter = [("fk_visit__fk_proband__copsac_id", ProbandFilter), "fk_dataset"]
 
-    list_filter = ["fk_dataset"]
     form = ExaminationAdminForm
 
     def view_on_site(self, obj):
