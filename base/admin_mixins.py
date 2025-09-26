@@ -9,20 +9,6 @@ class SoftDeleteAdminMixin:
     By default, hides deleted records. Provides option to show them.
     """
 
-    # Override get_queryset to exclude deleted records by default
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Handle our custom filter values
-        is_deleted_value = request.GET.get("is_deleted")
-        if is_deleted_value == "active":
-            return qs.filter(is_deleted=False)
-        elif is_deleted_value == "deleted":
-            return qs.filter(is_deleted=True)
-        elif is_deleted_value == "all":
-            return qs
-        # Default behavior - show only active
-        return qs.filter(is_deleted=False)
-
     # Add deleted filter to list_filter if not already present
     def get_list_filter(self, request):
         list_filter = super().get_list_filter(request) or []
