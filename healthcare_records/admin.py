@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
+from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from config.backoffice import backoffice
 from healthcare_records.models import ATCCode
 from healthcare_records.models import Diagnosis
@@ -21,16 +22,23 @@ class DiagnosisAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     search_fields = ["proband__copsac_id", "icd_code__code", "icd_code__description"]
     list_filter = [("proband__copsac_id", ProbandFilter), "is_chronic", "adverse_event"]
     date_hierarchy = "start_date"
-    actions = ["mark_as_deleted"]
-
-    @admin.action(
-        description="Mark selected diagnoses as deleted",
-    )
-    def mark_as_deleted(self, request, queryset):
-        queryset.update(is_deleted=True)
 
 
-backoffice.register(Diagnosis, DiagnosisAdmin)
+# Backoffice-specific class
+class DiagnosisBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, admin.ModelAdmin):
+    list_display = [
+        "proband",
+        "start_date",
+        "end_date",
+        "icd_code",
+        "get_deleted_status",
+    ]
+    search_fields = ["proband__copsac_id", "icd_code__code", "icd_code__description"]
+    list_filter = [("proband__copsac_id", ProbandFilter), "is_chronic", "adverse_event"]
+    date_hierarchy = "start_date"
+
+
+backoffice.register(Diagnosis, DiagnosisBackOffice)
 
 
 @admin.register(ICDCode)
@@ -39,7 +47,12 @@ class ICDCodeAdmin(admin.ModelAdmin):
     search_fields = ["code", "description"]
 
 
-backoffice.register(ICDCode, ICDCodeAdmin)
+class ICDCodeBackOffice(BackOfficeAdminMixin, admin.ModelAdmin):
+    list_display = ["code", "description"]
+    search_fields = ["code", "description"]
+
+
+backoffice.register(ICDCode, ICDCodeBackOffice)
 
 
 @admin.register(ATCCode)
@@ -48,7 +61,12 @@ class ATCCodeAdmin(admin.ModelAdmin):
     search_fields = ["code", "description"]
 
 
-backoffice.register(ATCCode, ATCCodeAdmin)
+class ATCCodeBackOffice(BackOfficeAdminMixin, admin.ModelAdmin):
+    list_display = ["code", "description"]
+    search_fields = ["code", "description"]
+
+
+backoffice.register(ATCCode, ATCCodeBackOffice)
 
 
 @admin.register(Medication)
@@ -62,13 +80,23 @@ class MedicationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
     ]
     search_fields = ["atc_code__code", "proband__copsac_id"]
     list_filter = [("proband__copsac_id", ProbandFilter)]
-    actions = ["mark_as_deleted"]
-
-    @admin.action(
-        description="Mark selected medications as deleted",
-    )
-    def mark_as_deleted(self, request, queryset):
-        queryset.update(is_deleted=True)
 
 
-backoffice.register(Medication, MedicationAdmin)
+# Backoffice-specific class
+class MedicationBackOffice(
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
+    list_display = [
+        "atc_code",
+        "proband",
+        "start_date",
+        "end_date",
+        "get_deleted_status",
+    ]
+    search_fields = ["atc_code__code", "proband__copsac_id"]
+    list_filter = [("proband__copsac_id", ProbandFilter)]
+
+
+backoffice.register(Medication, MedicationBackOffice)

@@ -26,6 +26,7 @@ from .models import VisitType
 from .widgets import DatasetFormWidget
 from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
+from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from base.models import Proband
 from config.backoffice import backoffice
 
@@ -37,7 +38,13 @@ class ColumnAdmin(SimpleHistoryAdmin):
     list_filter = ["fk_dataset"]
 
 
-backoffice.register(Column, ColumnAdmin)
+class ColumnBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+    list_display = ["fk_dataset", "name"]
+    search_fields = ["name"]
+    list_filter = ["fk_dataset"]
+
+
+backoffice.register(Column, ColumnBackoffice)
 
 
 class DatasetVisitTypeRelInline(admin.TabularInline):
@@ -91,12 +98,71 @@ class VisitTypeAdmin(SimpleHistoryAdmin):
         )
 
 
-backoffice.register(VisitType, VisitTypeAdmin)
+class VisitTypeBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+    inlines = [
+        DatasetVisitTypeRelInline,
+    ]
+    actions = [
+        "rollout_visit",
+    ]
+
+    @admin.action(description="Roll-out selected")
+    def rollout_visit(self, request, queryset):
+        counter = 0
+        for visit_type in queryset:
+            cohort = visit_type.cohort
+            visit_created = False
+            for proband in Proband.objects.filter(
+                cohort=cohort,
+                status__in=["active", "resting"],
+            ):
+                visit, created = Visit.objects.get_or_create(
+                    fk_proband=proband,
+                    fk_visit_type=visit_type,
+                    defaults={"status": "planned"},
+                )
+                if not created:
+                    continue
+                visit_created = True
+                for dataset in visit_type.dataset_set.all():
+                    Examination.objects.create(
+                        fk_visit=visit,
+                        fk_dataset=dataset,
+                        status="planned",
+                    )
+            if visit_created:
+                counter += 1
+        self.message_user(
+            request,
+            ngettext(
+                "%d visit was successfully rolled out.",
+                "%d visits were successfully rolled out.",
+                counter,
+            )
+            % counter,
+            messages.SUCCESS,
+        )
+
+
+backoffice.register(VisitType, VisitTypeBackoffice)
+
 admin.site.register(DatasetVisitTypeRel, SimpleHistoryAdmin)
-backoffice.register(DatasetVisitTypeRel, SimpleHistoryAdmin)
+
+
+class DatasetVisitTypeRelBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+    pass
+
+
+backoffice.register(DatasetVisitTypeRel, DatasetVisitTypeRelBackoffice)
 
 admin.site.register(HelpDoc, SimpleHistoryAdmin)
-backoffice.register(HelpDoc, SimpleHistoryAdmin)
+
+
+class HelpDocBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+    pass
+
+
+backoffice.register(HelpDoc, HelpDocBackoffice)
 
 
 @admin.register(HelpData)
@@ -106,7 +172,13 @@ class HelpDataAdmin(SimpleHistoryAdmin):
     list_filter = ["fk_dataset"]
 
 
-backoffice.register(HelpData, HelpDataAdmin)
+class HelpDataBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+    list_display = ["fk_dataset", "col_1", "col_2", "lookup_value"]
+    search_fields = ["col_1", "col_2", "lookup_value"]
+    list_filter = ["fk_dataset"]
+
+
+backoffice.register(HelpData, HelpDataBackoffice)
 
 
 class ColumnInline(admin.TabularInline):
@@ -240,7 +312,7 @@ class DatasetBackOfficeForm(forms.ModelForm):
         fields = "__all__"
 
 
-class DatasetBackoffice(admin.ModelAdmin):
+class DatasetBackoffice(BackOfficeAdminMixin, admin.ModelAdmin):
     list_display = ["name", "cohort"]
     search_fields = ["name"]
     list_filter = ["cohort"]
@@ -306,7 +378,14 @@ class CellAdmin(admin.ModelAdmin):
     raw_id_fields = ["fk_examination"]
 
 
-backoffice.register(Cell, CellAdmin)
+class CellBackoffice(BackOfficeAdminMixin, admin.ModelAdmin):
+    search_fields = ["fk_column__name"]
+    list_select_related = ["fk_examination", "fk_column"]
+    list_display = ["fk_examination", "fk_column", "value"]
+    raw_id_fields = ["fk_examination"]
+
+
+backoffice.register(Cell, CellBackoffice)
 
 
 class ExaminationBackOfficeForm(forms.ModelForm):
@@ -326,7 +405,11 @@ class CellInline(admin.TabularInline):
     ordering = [F("fk_column__display_order").asc(nulls_last=True), "fk_column__name"]
 
 
-class ExaminationBackOffice(SoftDeleteAdminMixin, admin.ModelAdmin):
+class ExaminationBackOffice(
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     list_select_related = [
         "fk_visit",
         "fk_visit__fk_visit_type",
@@ -574,4 +657,80 @@ class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
         return render(request, "admin/data/visit/merge_visits.html", context)
 
 
-backoffice.register(Visit, VisitAdmin)
+# Backoffice-specific class for Visit
+class VisitBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, admin.ModelAdmin):
+    # Add the custom URL for the merge form
+    def get_urls(self):
+        from django.urls import path
+
+        urls = super().get_urls()
+        custom_urls = [
+            path("merge/", self.merge_form_view, name="data_visit_merge"),
+        ]
+        return custom_urls + urls
+
+    list_select_related = [
+        "fk_proband",
+        "fk_visit_type",
+    ]
+    list_display = [
+        "fk_proband",
+        "fk_visit_type",
+        "visit_date",
+        "get_deleted_status",
+    ]
+    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
+    inlines = [
+        ExaminationInline,
+    ]
+    actions = ["merge_visits"]
+
+    @admin.action(description="Merge selected visits")
+    def merge_visits(self, request, queryset):
+        # Store the selected visit IDs in the session
+        request.session["merge_visit_ids"] = list(queryset.values_list("id", flat=True))
+        # Redirect to the merge form
+        return HttpResponseRedirect(reverse("admin:data_visit_merge"))
+
+    def merge_form_view(self, request):
+        # Get the visit IDs from the session
+        visit_ids = request.session.get("merge_visit_ids", [])
+        visits = Visit.objects.filter(id__in=visit_ids)
+
+        if request.method == "POST":
+            form = MergeVisitsForm(request.POST, visits=visits)
+            if form.is_valid():
+                # Perform the merge
+                target_visit = form.cleaned_data["target_visit"]
+                source_visits = visits.exclude(id=target_visit.id)
+
+                with transaction.atomic():
+                    for visit in source_visits:
+                        # Move all examinations from source visit to target visit
+                        Examination.objects.filter(fk_visit=visit).update(
+                            fk_visit=target_visit,
+                        )
+                        # Mark source visit as deleted
+                        visit.is_deleted = True
+                        visit.save()
+
+                    # Clear the session
+                    del request.session["merge_visit_ids"]
+                return HttpResponseRedirect(reverse("admin:data_visit_changelist"))
+            else:
+                # Form is not valid, show errors
+                pass
+        else:
+            form = MergeVisitsForm(visits=visits)
+
+        context = {
+            "form": form,
+            "visits": visits,
+            "title": "Merge Visits",
+            "opts": self.model._meta,
+        }
+
+        return render(request, "admin/data/visit/merge_visits.html", context)
+
+
+backoffice.register(Visit, VisitBackOffice)
