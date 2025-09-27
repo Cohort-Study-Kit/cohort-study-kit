@@ -326,7 +326,7 @@ class InteractionTest(VerboseLiveServerTestCase):
         dose_field.send_keys("2")
 
         recipient_selector = Select(self.driver.find_element(By.ID, "id_recipient"))
-        recipient_selector.select_by_visible_text("Proband's mother")
+        recipient_selector.select_by_visible_text("Proband")
 
         medication_field = self.driver.find_element(By.XPATH, '//div[@class="choices"]')
         medication_field.click()
@@ -398,13 +398,13 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.assertEqual("01‑10‑2022", startdate)
 
         # ##### Test update medication #####
-        # Verify that medication "Canesten" exists
+        # Verify that medication "Alminox" exists (the one we just created)
         medication_row = self.driver.find_element(
             By.XPATH,
-            '//div[@id="medication"]//tbody//tr[@data-id="31"]',
+            '//div[@id="medication"]//tbody//tr[./td[contains(text(), "Alminox")]]',
         )
         medication = medication_row.find_element(By.XPATH, ".//td[1]").text
-        self.assertEqual("Canesten", medication)
+        self.assertEqual('Alminox "DAK"', medication)
 
         medication_row.click()
         self.action.double_click(medication_row).perform()
