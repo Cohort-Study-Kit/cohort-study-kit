@@ -756,6 +756,11 @@ class InteractionTest(VerboseLiveServerTestCase):
         primary_home_checkbox.click()
 
         email_father = self.driver.find_element(By.ID, "id_cellphone_father")
+        self.driver.execute_script("arguments[0].scrollIntoView();", email_father)
+        time.sleep(self.sleep_time)
+        WebDriverWait(self.driver, self.wait_time).until(
+            EC.element_to_be_clickable((By.ID, "id_cellphone_father")),
+        )
         email_father.click()
         email_father.send_keys("0066600")
 
