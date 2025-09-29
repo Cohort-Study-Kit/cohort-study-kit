@@ -39,6 +39,7 @@ THIRD_PARTY_APPS = [
     "django_mysql",
     "simple_history",
     "npm_mjs",
+    "csvexport",
 ]
 
 LOCAL_APPS = [
@@ -92,6 +93,8 @@ TEMPLATES = [
         },
     },
 ]
+
+CSV_EXPORT_ESCAPECHAR = "\\"
 
 WSGI_APPLICATION = "config.wsgi.application"
 

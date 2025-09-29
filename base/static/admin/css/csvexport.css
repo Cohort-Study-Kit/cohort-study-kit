@@ -1,0 +1,319 @@
+/* CSV Export Page Styling - Enhanced for Django Admin CSExport Plugin */
+/* These styles only apply to the CSV export page */
+
+/* Main form container - only on CSV export page */
+body #content form:has(input[name="csvexport"]) {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Section headers - only on CSV export page */
+body #content h2:has(+ hr) {
+    color: #2c3e50;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Horizontal rules - only on CSV export page */
+body #content h2 + hr {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(to right, #3498db, #e74c3c);
+    margin: 15px 0 20px 0;
+    opacity: 0.7;
+}
+
+/* Form field containers - only on CSV export page */
+body #content form:has(input[name="csvexport"]) > div {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Fieldset styling - only on CSV export page */
+body #content form:has(input[name="csvexport"]) fieldset {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    background-color: #fdfdfd;
+    margin: 0;
+}
+
+body #content form:has(input[name="csvexport"]) legend {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1em;
+    padding: 0 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+/* Form labels - only on CSV export page */
+body #content form:has(input[name="csvexport"]) label {
+    font-weight: 500;
+    color: #495057;
+    margin: 8px 0;
+    display: block;
+    font-size: 14px;
+}
+
+/* Input fields - only on CSV export page */
+body #content form:has(input[name="csvexport"]) input[type="text"],
+body #content form:has(input[name="csvexport"]) input[type="number"],
+body #content form:has(input[name="csvexport"]) select {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+body #content form:has(input[name="csvexport"]) input[type="text"]:focus,
+body #content form:has(input[name="csvexport"]) input[type="number"]:focus,
+body #content form:has(input[name="csvexport"]) select:focus {
+    border-color: #3498db;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Checkbox styling - only on CSV export page */
+body #content form:has(input[name="csvexport"]) input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+    accent-color: #3498db;
+}
+
+/* Select all checkbox styling - only on CSV export page */
+body #content form:has(input[name="csvexport"]) [id$="_select_all"] {
+    margin-right: 10px;
+    transform: scale(1.3);
+    accent-color: #e74c3c;
+}
+
+body #content form:has(input[name="csvexport"]) [id$="_select_all_label"] {
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: inline-block;
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+body #content form:has(input[name="csvexport"]) [id$="_select_all_label"]:hover {
+    background-color: #c0392b;
+}
+
+/* Checkbox groups - only on CSV export page */
+body #content form:has(input[name="csvexport"]) [id^="id_"] > div {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f1f1;
+    transition: background-color 0.2s;
+}
+
+body #content form:has(input[name="csvexport"]) [id^="id_"] > div:hover {
+    background-color: #f8f9fa;
+    border-radius: 3px;
+}
+
+body #content form:has(input[name="csvexport"]) [id^="id_"] > div:last-child {
+    border-bottom: none;
+}
+
+/* Help text styling - only on CSV export page */
+body #content form:has(input[name="csvexport"]) .helptext {
+    font-size: 12px;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 5px;
+    display: block;
+    line-height: 1.4;
+}
+
+/* Button container - only on CSV export page */
+body #content form:has(input[name="csvexport"]) > div:last-child {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 20px 0 0 0;
+    text-align: left;
+}
+
+/* Submit buttons - only on CSV export page */
+body #content form:has(input[name="csvexport"]) input[type="submit"] {
+    background-color: #3498db;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 15px;
+    margin-top: 10px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body #content form:has(input[name="csvexport"]) input[type="submit"]:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+body #content form:has(input[name="csvexport"]) input[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Cancel link styling - only on CSV export page */
+body #content form:has(input[name="csvexport"]) .cancel-link {
+    background-color: #6c757d;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body #content form:has(input[name="csvexport"]) .cancel-link:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    color: white;
+    text-decoration: none;
+}
+
+/* Model field sections - specific styling for the nested structure */
+body #content form:has(input[name="csvexport"]) fieldset > div {
+    margin-top: 15px;
+}
+
+/* Responsive design - only on CSV export page */
+@media (max-width: 768px) {
+    body #content form:has(input[name="csvexport"]) {
+        padding: 15px;
+        margin: 10px 0;
+    }
+
+    body #content form:has(input[name="csvexport"]) > div {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    body #content form:has(input[name="csvexport"]) fieldset {
+        padding: 15px;
+    }
+
+    body #content form:has(input[name="csvexport"]) input[type="text"],
+    body #content form:has(input[name="csvexport"]) input[type="number"],
+    body #content form:has(input[name="csvexport"]) select {
+        max-width: 100%;
+    }
+
+    body #content form:has(input[name="csvexport"]) input[type="submit"],
+    body #content form:has(input[name="csvexport"]) .cancel-link {
+        padding: 10px 18px;
+        font-size: 13px;
+        margin-right: 10px;
+        margin-top: 8px;
+        display: inline-block;
+        width: auto;
+    }
+
+    body #content form:has(input[name="csvexport"]) .cancel-link {
+        margin-top: 10px;
+    }
+
+    /* Stack buttons on very small screens */
+    @media (max-width: 480px) {
+        body #content form:has(input[name="csvexport"]) input[type="submit"],
+        body #content form:has(input[name="csvexport"]) .cancel-link {
+            display: block;
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+    }
+}
+
+/* Dark mode support - only on CSV export page */
+@media (prefers-color-scheme: dark) {
+    body #content form:has(input[name="csvexport"]) {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+
+    body #content form:has(input[name="csvexport"]) > div {
+        background-color: #1a202c;
+        border-color: #4a5568;
+    }
+
+    body #content form:has(input[name="csvexport"]) fieldset {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+
+    body #content form:has(input[name="csvexport"]) legend {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    body #content h2:has(+ hr) {
+        color: #e2e8f0;
+        border-bottom-color: #63b3ed;
+    }
+
+    body #content form:has(input[name="csvexport"]) label {
+        color: #e2e8f0;
+    }
+
+    body #content form:has(input[name="csvexport"]) .helptext {
+        color: #a0aec0;
+    }
+
+    body #content form:has(input[name="csvexport"]) [id^="id_"] > div:hover {
+        background-color: #2d3748;
+    }
+}
+
+/* Animation for better UX - only on CSV export page */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body #content form:has(input[name="csvexport"]) > div {
+    animation: fadeIn 0.3s ease-out;
+}
+
+body #content form:has(input[name="csvexport"]) > div:nth-child(2) { animation-delay: 0.05s; }
+body #content form:has(input[name="csvexport"]) > div:nth-child(3) { animation-delay: 0.1s; }
+body #content form:has(input[name="csvexport"]) > div:nth-child(4) { animation-delay: 0.15s; }
+body #content form:has(input[name="csvexport"]) > div:nth-child(5) { animation-delay: 0.2s; }
+body #content form:has(input[name="csvexport"]) > div:nth-child(6) { animation-delay: 0.25s; }

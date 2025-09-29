@@ -1,5 +1,6 @@
 from inspect import signature
 
+from csvexport.actions import csvexport
 from django import forms
 from django.contrib import admin
 from django.contrib import messages
@@ -29,6 +30,12 @@ from base.admin_mixins import SoftDeleteAdminMixin
 from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from base.models import Proband
 from config.backoffice import backoffice
+
+csvexport.short_description = "Export as CSV"
+
+admin.site.add_action(csvexport)
+
+backoffice.add_action(csvexport)
 
 
 @admin.register(Column)
@@ -427,8 +434,8 @@ class ExaminationBackOffice(
     inlines = [
         CellInline,
     ]
-
     list_filter = [("fk_visit__fk_proband__copsac_id", ProbandFilter), "fk_dataset"]
+
     form = ExaminationBackOfficeForm
 
     def view_on_site(self, obj):
