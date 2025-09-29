@@ -5,6 +5,7 @@ from simple_history.admin import SimpleHistoryAdmin
 
 from .admin_filters import ProbandFilter
 from .admin_mixins import SoftDeleteAdminMixin
+from .admin_pagination import AdminDynPaginationMixin
 from .backoffice_admin_mixins import BackOfficeAdminMixin
 from .models import Address
 from .models import Cohort
@@ -21,7 +22,7 @@ from config.backoffice import backoffice
 
 
 @admin.register(Relative)
-class RelativeAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+class RelativeAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_select_related = ["fk_proband"]
     list_display = ["fk_proband", "name", "relation_type", "get_deleted_status"]
     search_fields = ["fk_proband__copsac_id", "firstname", "lastname"]
@@ -30,6 +31,7 @@ class RelativeAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
 
 # Backoffice-specific admin classes for models with is_deleted field
 class RelativeBackOffice(
+    AdminDynPaginationMixin,
     SoftDeleteAdminMixin,
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
@@ -44,12 +46,17 @@ backoffice.register(Relative, RelativeBackOffice)
 
 
 @admin.register(Note)
-class NoteAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+class NoteAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_display = ["fk_proband", "date", "get_deleted_status"]
     list_filter = [("fk_proband__copsac_id", ProbandFilter), "date"]
 
 
-class NoteBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, SimpleHistoryAdmin):
+class NoteBackOffice(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["fk_proband", "date", "get_deleted_status"]
     list_filter = [("fk_proband__copsac_id", ProbandFilter), "date"]
 
@@ -58,7 +65,7 @@ backoffice.register(Note, NoteBackOffice)
 
 
 @admin.register(ConsentType)
-class ConsentTypeAdmin(SimpleHistoryAdmin):
+class ConsentTypeAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
     list_display = ["name", "cohort"]
     search_fields = ["name"]
     list_filter = ["cohort"]
@@ -94,7 +101,11 @@ class ConsentTypeAdmin(SimpleHistoryAdmin):
             )
 
 
-class ConsentTypeBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class ConsentTypeBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["name", "cohort"]
     search_fields = ["name"]
     list_filter = ["cohort"]
@@ -134,7 +145,7 @@ backoffice.register(ConsentType, ConsentTypeBackoffice)
 
 
 @admin.register(Consent)
-class ConsentAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+class ConsentAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
     search_fields = ["fk_consent_type__name"]
     list_filter = [
@@ -144,7 +155,12 @@ class ConsentAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
     ]
 
 
-class ConsentBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, SimpleHistoryAdmin):
+class ConsentBackOffice(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
     search_fields = ["fk_consent_type__name"]
     list_filter = [
@@ -158,7 +174,7 @@ backoffice.register(Consent, ConsentBackOffice)
 
 
 @admin.register(Proband)
-class ProbandAdmin(SimpleHistoryAdmin):
+class ProbandAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
     list_display = ["copsac_id", "name", "cohort"]
     search_fields = ["cpr", "copsac_id", "firstname", "lastname"]
     list_filter = [
@@ -172,7 +188,11 @@ class ProbandAdmin(SimpleHistoryAdmin):
     ]
 
 
-class ProbandBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class ProbandBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["copsac_id", "name", "cohort"]
     search_fields = ["cpr", "copsac_id", "firstname", "lastname"]
     list_filter = [
@@ -188,28 +208,45 @@ class ProbandBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
 
 backoffice.register(Proband, ProbandBackoffice)
 
-admin.site.register(RecruitingCenter, SimpleHistoryAdmin)
+
+@admin.register(RecruitingCenter)
+class RecruitingCenterAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
-class RecruitingCenterBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class RecruitingCenterBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     pass
 
 
 backoffice.register(RecruitingCenter, RecruitingCenterBackoffice)
 
-admin.site.register(Site, SimpleHistoryAdmin)
+
+@admin.register(Site)
+class SiteAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
-class SiteBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class SiteBackoffice(AdminDynPaginationMixin, BackOfficeAdminMixin, SimpleHistoryAdmin):
     pass
 
 
 backoffice.register(Site, SiteBackoffice)
 
-admin.site.register(Cohort, SimpleHistoryAdmin)
+
+@admin.register(Cohort)
+class CohortAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
-class CohortBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class CohortBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     pass
 
 
@@ -217,7 +254,7 @@ backoffice.register(Cohort, CohortBackoffice)
 
 
 @admin.register(Address)
-class AddressAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+class AddressAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_display = [
         "proband",
         "start_date",
@@ -231,7 +268,12 @@ class AddressAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
     list_filter = [("proband__copsac_id", ProbandFilter), "start_date", "end_date"]
 
 
-class AddressBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, SimpleHistoryAdmin):
+class AddressBackOffice(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = [
         "proband",
         "start_date",
@@ -249,7 +291,11 @@ backoffice.register(Address, AddressBackOffice)
 
 
 @admin.register(EducationalInstitution)
-class EducationalInstitutionAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
+class EducationalInstitutionAdmin(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = [
         "type",
         "name",
@@ -270,6 +316,7 @@ class EducationalInstitutionAdmin(SoftDeleteAdminMixin, SimpleHistoryAdmin):
 
 
 class EducationalInstitutionBackOffice(
+    AdminDynPaginationMixin,
     SoftDeleteAdminMixin,
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
@@ -294,10 +341,15 @@ class EducationalInstitutionBackOffice(
 
 
 backoffice.register(EducationalInstitution, EducationalInstitutionBackOffice)
-admin.site.register(EducationalInstitutionStats, SimpleHistoryAdmin)
+
+
+@admin.register(EducationalInstitutionStats)
+class EducationalInstitutionStatsAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
 class EducationalInstitutionStatsBackOffice(
+    AdminDynPaginationMixin,
     SoftDeleteAdminMixin,
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,

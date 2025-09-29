@@ -4,11 +4,12 @@ from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
 from .models import User
+from base.admin_pagination import AdminDynPaginationMixin
 from config.backoffice import backoffice
 
 
 @admin.register(User)
-class UserAdmin(DefaultUserAdmin):
+class UserAdmin(AdminDynPaginationMixin, DefaultUserAdmin):
     list_display = (
         "username",
         "email",

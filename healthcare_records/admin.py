@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
+from base.admin_pagination import AdminDynPaginationMixin
 from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from config.backoffice import backoffice
 from healthcare_records.models import ATCCode
@@ -11,7 +12,7 @@ from healthcare_records.models import Medication
 
 
 @admin.register(Diagnosis)
-class DiagnosisAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
+class DiagnosisAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin):
     list_display = [
         "proband",
         "start_date",
@@ -25,7 +26,12 @@ class DiagnosisAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
 
 # Backoffice-specific class
-class DiagnosisBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, admin.ModelAdmin):
+class DiagnosisBackOffice(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     list_display = [
         "proband",
         "start_date",
@@ -42,12 +48,16 @@ backoffice.register(Diagnosis, DiagnosisBackOffice)
 
 
 @admin.register(ICDCode)
-class ICDCodeAdmin(admin.ModelAdmin):
+class ICDCodeAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     list_display = ["code", "description"]
     search_fields = ["code", "description"]
 
 
-class ICDCodeBackOffice(BackOfficeAdminMixin, admin.ModelAdmin):
+class ICDCodeBackOffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     list_display = ["code", "description"]
     search_fields = ["code", "description"]
 
@@ -56,12 +66,16 @@ backoffice.register(ICDCode, ICDCodeBackOffice)
 
 
 @admin.register(ATCCode)
-class ATCCodeAdmin(admin.ModelAdmin):
+class ATCCodeAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     list_display = ["code", "description"]
     search_fields = ["code", "description"]
 
 
-class ATCCodeBackOffice(BackOfficeAdminMixin, admin.ModelAdmin):
+class ATCCodeBackOffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     list_display = ["code", "description"]
     search_fields = ["code", "description"]
 
@@ -70,7 +84,7 @@ backoffice.register(ATCCode, ATCCodeBackOffice)
 
 
 @admin.register(Medication)
-class MedicationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
+class MedicationAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin):
     list_display = [
         "atc_code",
         "proband",
@@ -84,6 +98,7 @@ class MedicationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
 # Backoffice-specific class
 class MedicationBackOffice(
+    AdminDynPaginationMixin,
     SoftDeleteAdminMixin,
     BackOfficeAdminMixin,
     admin.ModelAdmin,

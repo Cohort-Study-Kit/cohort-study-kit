@@ -27,6 +27,7 @@ from .models import VisitType
 from .widgets import DatasetFormWidget
 from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
+from base.admin_pagination import AdminDynPaginationMixin
 from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from base.models import Proband
 from config.backoffice import backoffice
@@ -39,13 +40,17 @@ backoffice.add_action(csvexport)
 
 
 @admin.register(Column)
-class ColumnAdmin(SimpleHistoryAdmin):
+class ColumnAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
     list_display = ["fk_dataset", "name"]
     search_fields = ["name"]
     list_filter = ["fk_dataset"]
 
 
-class ColumnBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class ColumnBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["fk_dataset", "name"]
     search_fields = ["name"]
     list_filter = ["fk_dataset"]
@@ -59,7 +64,7 @@ class DatasetVisitTypeRelInline(admin.TabularInline):
 
 
 @admin.register(VisitType)
-class VisitTypeAdmin(SimpleHistoryAdmin):
+class VisitTypeAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
     inlines = [
         DatasetVisitTypeRelInline,
     ]
@@ -105,7 +110,11 @@ class VisitTypeAdmin(SimpleHistoryAdmin):
         )
 
 
-class VisitTypeBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class VisitTypeBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     inlines = [
         DatasetVisitTypeRelInline,
     ]
@@ -153,19 +162,33 @@ class VisitTypeBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
 
 backoffice.register(VisitType, VisitTypeBackoffice)
 
-admin.site.register(DatasetVisitTypeRel, SimpleHistoryAdmin)
+
+@admin.register(DatasetVisitTypeRel)
+class DatasetVisitTypeRelAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
-class DatasetVisitTypeRelBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class DatasetVisitTypeRelBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     pass
 
 
 backoffice.register(DatasetVisitTypeRel, DatasetVisitTypeRelBackoffice)
 
-admin.site.register(HelpDoc, SimpleHistoryAdmin)
+
+@admin.register(HelpDoc)
+class HelpDocAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
+    pass
 
 
-class HelpDocBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class HelpDocBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     pass
 
 
@@ -173,13 +196,17 @@ backoffice.register(HelpDoc, HelpDocBackoffice)
 
 
 @admin.register(HelpData)
-class HelpDataAdmin(SimpleHistoryAdmin):
+class HelpDataAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
     list_display = ["fk_dataset", "col_1", "col_2", "lookup_value"]
     search_fields = ["col_1", "col_2", "lookup_value"]
     list_filter = ["fk_dataset"]
 
 
-class HelpDataBackoffice(BackOfficeAdminMixin, SimpleHistoryAdmin):
+class HelpDataBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    SimpleHistoryAdmin,
+):
     list_display = ["fk_dataset", "col_1", "col_2", "lookup_value"]
     search_fields = ["col_1", "col_2", "lookup_value"]
     list_filter = ["fk_dataset"]
@@ -267,7 +294,7 @@ class DatasetAdminForm(forms.ModelForm):
 
 
 @admin.register(Dataset)
-class DatasetAdmin(admin.ModelAdmin):
+class DatasetAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     list_display = ["name", "cohort"]
     search_fields = ["name"]
     list_filter = ["cohort"]
@@ -319,7 +346,11 @@ class DatasetBackOfficeForm(forms.ModelForm):
         fields = "__all__"
 
 
-class DatasetBackoffice(BackOfficeAdminMixin, admin.ModelAdmin):
+class DatasetBackoffice(
+    AdminDynPaginationMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     list_display = ["name", "cohort"]
     search_fields = ["name"]
     list_filter = ["cohort"]
@@ -378,14 +409,14 @@ backoffice.register(Dataset, DatasetBackoffice)
 
 
 @admin.register(Cell)
-class CellAdmin(admin.ModelAdmin):
+class CellAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     search_fields = ["fk_column__name"]
     list_select_related = ["fk_examination", "fk_column"]
     list_display = ["fk_examination", "fk_column", "value"]
     raw_id_fields = ["fk_examination"]
 
 
-class CellBackoffice(BackOfficeAdminMixin, admin.ModelAdmin):
+class CellBackoffice(AdminDynPaginationMixin, BackOfficeAdminMixin, admin.ModelAdmin):
     search_fields = ["fk_column__name"]
     list_select_related = ["fk_examination", "fk_column"]
     list_display = ["fk_examination", "fk_column", "value"]
@@ -413,6 +444,7 @@ class CellInline(admin.TabularInline):
 
 
 class ExaminationBackOffice(
+    AdminDynPaginationMixin,
     SoftDeleteAdminMixin,
     BackOfficeAdminMixin,
     admin.ModelAdmin,
@@ -469,7 +501,7 @@ class ExaminationAdminForm(forms.ModelForm):
 
 
 @admin.register(Examination)
-class ExaminationAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
+class ExaminationAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin):
     list_select_related = [
         "fk_visit",
         "fk_visit__fk_visit_type",
@@ -529,7 +561,7 @@ class MergeVisitsForm(forms.Form):
 
 
 @admin.register(Visit)
-class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
+class VisitAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin):
     # Add the custom URL for the merge form
     def get_urls(self):
         from django.urls import path
@@ -665,7 +697,12 @@ class VisitAdmin(SoftDeleteAdminMixin, admin.ModelAdmin):
 
 
 # Backoffice-specific class for Visit
-class VisitBackOffice(SoftDeleteAdminMixin, BackOfficeAdminMixin, admin.ModelAdmin):
+class VisitBackOffice(
+    AdminDynPaginationMixin,
+    SoftDeleteAdminMixin,
+    BackOfficeAdminMixin,
+    admin.ModelAdmin,
+):
     # Add the custom URL for the merge form
     def get_urls(self):
         from django.urls import path
