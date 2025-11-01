@@ -44,6 +44,24 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-software-rasterizer")
             options.add_argument("--disable-features=VizDisplayCompositor")
             options.add_argument("--enable-unsafe-swiftshader")
+            # Additional stability flags for CI
+            options.add_argument("--single-process")
+            options.add_argument("--disable-web-security")
+            options.add_argument("--disable-site-isolation-trials")
+            options.add_argument("--disable-features=IsolateOrigins,site-per-process")
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_argument("--disable-background-timer-throttling")
+            options.add_argument("--disable-backgrounding-occluded-windows")
+            options.add_argument("--disable-renderer-backgrounding")
+            options.add_argument("--disable-hang-monitor")
+            options.add_argument("--disable-prompt-on-repost")
+            options.add_argument("--disable-sync")
+            options.add_argument("--force-color-profile=srgb")
+            options.add_argument("--metrics-recording-only")
+            options.add_argument("--no-first-run")
+            options.add_argument("--safebrowsing-disable-auto-update")
+            options.add_argument("--disable-default-apps")
+            options.add_argument("--disable-component-update")
             # Use 'eager' page load strategy - wait for DOM but not all resources
             options.page_load_strategy = "eager"
             cls.wait_time = 30
@@ -69,10 +87,11 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options=options,
         )
         cls.driver.implicitly_wait(cls.wait_time)
-        # Set page load timeout to prevent hanging (increase to 120 for CI stability)
+        # Set page load timeout to prevent hanging
         cls.driver.set_page_load_timeout(120)
-        # Set script timeout
-        cls.driver.set_script_timeout(60)
+        # Set script timeout - lower in CI to fail fast
+        script_timeout = 30 if os.getenv("CI") else 60
+        cls.driver.set_script_timeout(script_timeout)
 
         # Verify driver is working
         try:
