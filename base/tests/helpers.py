@@ -45,11 +45,7 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-backgrounding-occluded-windows")
             options.add_argument("--disable-renderer-backgrounding")
             options.add_argument("--disable-software-rasterizer")
-            options.add_argument("--disable-web-security")
             options.add_argument("--disable-blink-features=AutomationControlled")
-            options.add_argument("--single-process")
-            options.add_argument("--disable-setuid-sandbox")
-            options.add_argument("--remote-debugging-port=9222")
             # Set page load strategy to eager to avoid waiting for all resources
             options.page_load_strategy = "eager"
             cls.wait_time = 30
