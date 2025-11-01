@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 
 from django.contrib.auth import get_user_model
