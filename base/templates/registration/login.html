@@ -3,12 +3,12 @@
 
 <form method="post" action="{% url 'login' %}">
   {% csrf_token %}
+  {% if form.errors %}
+  <div class="error-message" id="login_error">
+    <p>Wrong login, please try again.</p>
+  </div>
+  {% endif %}
   <h2>
-    {% if form.errors %}
-    <script>
-      alert('Wrong login, please try again.')
-    </script>
-    {% endif %}
     {% if next %}
       {% if user.is_authenticated %}
         <p>Account is not authorized</p>

@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 from django.contrib.auth import get_user_model
@@ -52,14 +53,11 @@ class InteractionTest(VerboseLiveServerTestCase):
         # Use JavaScript click to avoid potential page load timeout in CI
         self.driver.execute_script("arguments[0].click();", submit_button)
 
-        # Wait for alert to appear (the page reloads and shows an alert)
-        logger.info("Waiting for alert to appear after failed login")
-        WebDriverWait(self.driver, self.wait_time).until(EC.alert_is_present())
-        logger.info("Alert detected")
-        wrong_login_alert = self.driver.switch_to.alert
-
-        self.assertEqual(wrong_login_alert.text, "Wrong login, please try again.")
-        wrong_login_alert.accept()
+        # Wait for error message to appear in the DOM
+        logger.info("Waiting for error message after failed login")
+        error_message = self.wait_for_element(By.ID, "login_error")
+        self.assertIn("Wrong login, please try again", error_message.text)
+        logger.info("Error message verified")
 
         # page has reloaded, we need to find elements again.
         username_input = self.wait_for_element(By.ID, "id_username")

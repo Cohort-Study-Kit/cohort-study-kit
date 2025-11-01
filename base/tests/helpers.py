@@ -32,6 +32,19 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
         cls._wait_for_server_ready()
 
         options = webdriver.ChromeOptions()
+
+        # Disable autofill and save prompts for all environments
+        # These dialogs can overlap the page and interfere with tests
+        prefs = {
+            "credentials_enable_service": False,
+            "profile.password_manager_enabled": False,
+            "autofill.profile_enabled": False,
+            "autofill.credit_card_enabled": False,
+            "profile.default_content_setting_values.notifications": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        options.add_argument("--disable-save-password-bubble")
+
         if os.getenv("CI"):
             # Github Actions
             options.binary_location = "/usr/bin/google-chrome-stable"
@@ -135,12 +148,13 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             result = self._outcome.result
         ok = all(test != self for test, text in result.errors + result.failures)
         if not ok:
-            # Handle any open alerts before taking screenshot
+            # Handle any open alerts before taking screenshot (if any exist)
             try:
                 alert = self.driver.switch_to.alert
                 alert.dismiss()
-            except Exception as e:
-                logger.warning(f"Dismiss alert not working: {e}")
+            except Exception:
+                # No alert present - this is normal for most tests
+                pass
 
             if not os.path.exists("screenshots"):
                 os.makedirs("screenshots")
