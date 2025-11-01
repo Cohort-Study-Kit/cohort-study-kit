@@ -44,11 +44,9 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-software-rasterizer")
             options.add_argument("--disable-features=VizDisplayCompositor")
             options.add_argument("--enable-unsafe-swiftshader")
-            # Additional stability flags for CI
-            options.add_argument("--single-process")
+            # Additional stability flags for CI (avoid --single-process as it crashes in CI)
             options.add_argument("--disable-web-security")
             options.add_argument("--disable-site-isolation-trials")
-            options.add_argument("--disable-features=IsolateOrigins,site-per-process")
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-backgrounding-occluded-windows")
