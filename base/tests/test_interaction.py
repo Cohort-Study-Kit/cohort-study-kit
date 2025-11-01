@@ -49,7 +49,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         username_input.send_keys("non_existing")
         password_input.send_keys("user")
         logger.info("Clicking submit button with invalid credentials")
-        submit_button.click()
+        # Use JavaScript click to avoid potential page load timeout in CI
+        self.driver.execute_script("arguments[0].click();", submit_button)
 
         # Wait for alert to appear (the page reloads and shows an alert)
         logger.info("Waiting for alert to appear after failed login")
@@ -71,7 +72,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         # Log in with the test user
         username_input.send_keys("testuser")
         password_input.send_keys("12345")
-        submit_button.click()
+        # Use JavaScript click to avoid potential page load timeout in CI
+        self.driver.execute_script("arguments[0].click();", submit_button)
 
         # Check that user has been logged in.
         user_dropdown = self.driver.find_element(By.CSS_SELECTOR, "div.user-dropdown")
