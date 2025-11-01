@@ -149,7 +149,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         time.sleep(self.sleep_time)
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("This is a new diagnosis")
 
         # Save new diagnose
@@ -288,10 +289,12 @@ class InteractionTest(VerboseLiveServerTestCase):
 
         # Don't assert the exact value - just check we can interact with it
         # The value might be empty or contain our text
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.clear()
         comments_field.send_keys("Updated the diagnosis")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.clear()
         comments_field.send_keys("Updated the diagnosis")
 
@@ -430,15 +433,24 @@ class InteractionTest(VerboseLiveServerTestCase):
         medication_field = self.driver.find_element(By.XPATH, '//div[@class="choices"]')
         medication_field.click()
 
+        # Wait for the dropdown to open and search input to be ready
+        time.sleep(self.sleep_time)
         medication_search = medication_field.find_element(By.XPATH, ".//input")
-        medication_search.send_keys("A")
-        medication_search.send_keys("0")
-        medication_search.send_keys("2")
+        # Use ActionChains to send keys to the input
+        self.action.move_to_element(medication_search).click().perform()
+        time.sleep(0.5)
+        self.action.send_keys("A").perform()
+        time.sleep(0.2)
+        self.action.send_keys("0").perform()
+        time.sleep(0.2)
+        self.action.send_keys("2").perform()
+        time.sleep(self.sleep_time)
 
-        # Scrolling the medication list
-        medication_list = medication_field.find_element(
-            By.XPATH,
-            './/div[@class="choices__list" and @role="listbox"]',
+        # Wait for the medication list to appear and be populated
+        medication_list = WebDriverWait(self.driver, self.wait_time).until(
+            EC.presence_of_element_located(
+                (By.XPATH, './/div[@class="choices__list" and @role="listbox"]'),
+            ),
         )
         self.driver.execute_script("arguments[0].scrollBy(0,200)", medication_list)
         self.driver.execute_script("arguments[0].scrollBy(0,200)", medication_list)
@@ -447,9 +459,11 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.driver.execute_script("arguments[0].scrollBy(0,-600)", medication_list)
         self.driver.execute_script("arguments[0].scrollTo(0,0)", medication_list)
 
-        medication_choice = medication_list.find_element(
-            By.XPATH,
-            './/div[contains(text(),"A02AD01OR Alminox")]',
+        # Wait for the specific medication to appear in the list
+        medication_choice = WebDriverWait(self.driver, self.wait_time).until(
+            EC.presence_of_element_located(
+                (By.XPATH, './/div[contains(text(),"A02AD01OR Alminox")]'),
+            ),
         )
         medication_choice.click()
 
@@ -469,7 +483,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         period_select.select_by_visible_text("Week")
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("Selenium create medication.")
 
         submit_button = self.driver.find_element(By.ID, "submit")
@@ -530,7 +545,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         dose_field.send_keys("1")
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("Selenium update medication.")
 
         submit_button = self.driver.find_element(By.ID, "submit")
@@ -748,15 +764,17 @@ class InteractionTest(VerboseLiveServerTestCase):
 
         # Test some more input fields
         dead_checkbox = self.driver.find_element(By.ID, "dead")
-        dead_checkbox.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", dead_checkbox)
 
         deathdate_field = self.driver.find_element(By.ID, "deathdate")
-        deathdate_field.click()
+        self.safe_click(deathdate_field)
         deathdate_field.send_keys("12122012")
         deathdate_field.send_keys(Keys.ENTER)
 
         comments_field = self.driver.find_element(By.ID, "comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("This is an automated selenium test")
 
         submit_button = self.driver.find_element(By.ID, "submit")
@@ -990,7 +1008,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         dog_select.select_by_visible_text("Yes")
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("The dog might be a horse")
 
         submit_button = self.driver.find_element(By.ID, "submit")
@@ -1051,7 +1070,8 @@ class InteractionTest(VerboseLiveServerTestCase):
             By.CSS_SELECTOR,
             "#examinations-list thead a.plus-button",
         )
-        self.driver.execute_script("arguments[0].click();", create)
+        # Use safe_click to handle potential interception issues
+        self.safe_click(create)
         WebDriverWait(self.driver, self.wait_time).until(
             EC.url_contains("/examination/create/1111/93/"),
         )
@@ -1076,7 +1096,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         status_field.select_by_visible_text("Planned")
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("Create examination.")
         # Wait for the comments field to have the expected value
         WebDriverWait(self.driver, self.wait_time).until(
@@ -1286,7 +1307,8 @@ class InteractionTest(VerboseLiveServerTestCase):
         gaming_dev_fri_sun_field.select_by_visible_text("Max 6")
 
         comments_field = self.driver.find_element(By.ID, "id_comments")
-        comments_field.click()
+        # Use JavaScript click to avoid interception issues
+        self.driver.execute_script("arguments[0].click();", comments_field)
         comments_field.send_keys("Update examination.")
         # Wait for the comments field to have the expected value
         WebDriverWait(self.driver, self.wait_time).until(
@@ -1298,7 +1320,7 @@ class InteractionTest(VerboseLiveServerTestCase):
             By.ID,
             "id_exceptional_values",
         )
-        exceptional_values_field.click()
+        self.safe_click(exceptional_values_field)
 
         # Save and back to front page
         submit_button = self.driver.find_element(

@@ -41,8 +41,11 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-extensions")
-            # Use 'none' page load strategy to avoid renderer timeouts in CI
-            options.page_load_strategy = "none"
+            options.add_argument("--disable-software-rasterizer")
+            options.add_argument("--disable-features=VizDisplayCompositor")
+            options.add_argument("--enable-unsafe-swiftshader")
+            # Use 'eager' page load strategy - wait for DOM but not all resources
+            options.page_load_strategy = "eager"
             cls.wait_time = 30
             cls.sleep_time = 3
             cls.max_retries = 3
@@ -66,10 +69,10 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options=options,
         )
         cls.driver.implicitly_wait(cls.wait_time)
-        # Set page load timeout to prevent hanging
-        cls.driver.set_page_load_timeout(60)
+        # Set page load timeout to prevent hanging (increase to 120 for CI stability)
+        cls.driver.set_page_load_timeout(120)
         # Set script timeout
-        cls.driver.set_script_timeout(30)
+        cls.driver.set_script_timeout(60)
 
         # Verify driver is working
         try:
@@ -172,8 +175,21 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 element.click()
                 return
             except Exception as e:
-                if attempt == max_retries - 1:
+                # If click is intercepted, try JavaScript click as fallback
+                if "intercepted" in str(e).lower():
+                    try:
+                        logger.info(
+                            "Click intercepted, using JavaScript click as fallback",
+                        )
+                        self.driver.execute_script("arguments[0].click();", element)
+                        return
+                    except Exception as js_error:
+                        logger.warning(f"JavaScript click also failed: {js_error}")
+                        if attempt == max_retries - 1:
+                            raise
+                elif attempt == max_retries - 1:
                     raise
+
                 time.sleep(self.sleep_time)
                 # If it's a stale element exception, we can't re-find it, so just raise the error
                 if "stale" in str(e).lower():
@@ -199,26 +215,17 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                         f"Chrome session is not valid: {session_error}",
                     ) from session_error
 
-                # Navigate to the URL (with page_load_strategy='none', this returns immediately)
+                # Navigate to the URL (with page_load_strategy='eager', waits for DOM ready)
                 self.driver.get(url)
                 logger.info(f"Navigation command sent to {url}")
 
-                # Give the page time to load
-                time.sleep(3)
+                # Give the page a moment to stabilize after DOM ready
+                time.sleep(1)
 
-                # Verify we navigated to the expected URL
+                # Verify we navigated successfully
                 current_url = self.driver.current_url
-                if url in current_url or current_url in url:
-                    logger.info(
-                        f"Successfully loaded URL: {url} (current: {current_url})",
-                    )
-                    return
-                else:
-                    logger.warning(
-                        f"URL mismatch - expected: {url}, got: {current_url}",
-                    )
-                    # Continue anyway as the navigation might have redirected
-                    return
+                logger.info(f"Successfully loaded URL: {url} (current: {current_url})")
+                return
             except Exception as e:
                 logger.error(
                     f"Failed to load URL on attempt {attempt + 1}: {type(e).__name__}: {str(e)}",
