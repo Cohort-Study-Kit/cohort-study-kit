@@ -2,7 +2,6 @@ import logging
 import time
 
 from django.contrib.auth import get_user_model
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -34,12 +33,17 @@ class InteractionTest(VerboseLiveServerTestCase):
         )
         self.action = ActionChains(self.driver)
         self.safe_get(self.live_server_url + "/")
+        # Wait for login form to be present
+        self.wait_for_element(By.ID, "id_username")
 
     def test_interaction(self):
         # -------------------- Login test --------------------
-        username_input = self.driver.find_element(By.ID, "id_username")
-        password_input = self.driver.find_element(By.ID, "id_password")
-        submit_button = self.driver.find_element(By.CSS_SELECTOR, "button.submit")
+        username_input = self.wait_for_element(By.ID, "id_username")
+        password_input = self.wait_for_element(By.ID, "id_password")
+        submit_button = self.wait_for_element_clickable(
+            By.CSS_SELECTOR,
+            "button.submit",
+        )
 
         # Try to log in with a non-existing user account.
         username_input.send_keys("non_existing")
@@ -47,47 +51,22 @@ class InteractionTest(VerboseLiveServerTestCase):
         logger.info("Clicking submit button with invalid credentials")
         submit_button.click()
 
-        # Wait for navigation to complete (URL might stay the same for form resubmission)
-        logger.info("Waiting for page navigation after failed login")
-        time.sleep(1)
-
-        # Wait for document to be complete
-        WebDriverWait(self.driver, self.wait_time).until(
-            lambda driver: driver.execute_script("return document.readyState")
-            == "complete",
-        )
-        logger.info(f"Page loaded, current URL: {self.driver.current_url}")
-
-        # Log page source to debug
-        page_source = self.driver.page_source
-        if "form.errors" in page_source or "Wrong login" in page_source:
-            logger.info("Page contains error indicators")
-        else:
-            logger.warning("Page does not contain expected error indicators")
-            logger.info(f"Page source snippet: {page_source[:500]}")
-
-        # Wait a bit more for JavaScript to execute
-        time.sleep(1)
-
-        # Check if alert is present without long wait first
-        try:
-            alert = self.driver.switch_to.alert
-            logger.info(f"Alert found immediately with text: {alert.text}")
-            wrong_login_alert = alert
-        except NoAlertPresentException:
-            # If no alert yet, wait for it
-            logger.info("No immediate alert, waiting for alert to appear")
-            WebDriverWait(self.driver, self.wait_time).until(EC.alert_is_present())
-            logger.info("Alert detected after wait")
-            wrong_login_alert = self.driver.switch_to.alert
+        # Wait for alert to appear (the page reloads and shows an alert)
+        logger.info("Waiting for alert to appear after failed login")
+        WebDriverWait(self.driver, self.wait_time).until(EC.alert_is_present())
+        logger.info("Alert detected")
+        wrong_login_alert = self.driver.switch_to.alert
 
         self.assertEqual(wrong_login_alert.text, "Wrong login, please try again.")
         wrong_login_alert.accept()
 
         # page has reloaded, we need to find elements again.
-        username_input = self.driver.find_element(By.ID, "id_username")
-        password_input = self.driver.find_element(By.ID, "id_password")
-        submit_button = self.driver.find_element(By.CSS_SELECTOR, "button.submit")
+        username_input = self.wait_for_element(By.ID, "id_username")
+        password_input = self.wait_for_element(By.ID, "id_password")
+        submit_button = self.wait_for_element_clickable(
+            By.CSS_SELECTOR,
+            "button.submit",
+        )
 
         # Log in with the test user
         username_input.send_keys("testuser")
