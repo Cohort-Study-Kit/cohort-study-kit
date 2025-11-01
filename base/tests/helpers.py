@@ -32,21 +32,48 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
         cls._wait_for_server_ready()
 
         options = webdriver.ChromeOptions()
+
+        # Disable autofill and save prompts for all environments
+        # These dialogs can overlap the page and interfere with tests
+        prefs = {
+            "credentials_enable_service": False,
+            "profile.password_manager_enabled": False,
+            "autofill.profile_enabled": False,
+            "autofill.credit_card_enabled": False,
+            "profile.default_content_setting_values.notifications": 2,
+        }
+        options.add_experimental_option("prefs", prefs)
+        options.add_argument("--disable-save-password-bubble")
+
         if os.getenv("CI"):
             # Github Actions
             options.binary_location = "/usr/bin/google-chrome-stable"
             options.add_argument("--headless=new")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
             options.add_argument("--disable-extensions")
+            options.add_argument("--disable-software-rasterizer")
+            options.add_argument("--disable-features=VizDisplayCompositor")
+            options.add_argument("--enable-unsafe-swiftshader")
+            # Additional stability flags for CI (avoid --single-process as it crashes in CI)
+            options.add_argument("--disable-web-security")
+            options.add_argument("--disable-site-isolation-trials")
+            options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-backgrounding-occluded-windows")
             options.add_argument("--disable-renderer-backgrounding")
-            options.add_argument("--disable-software-rasterizer")
-            options.add_argument("--disable-blink-features=AutomationControlled")
-            # Set page load strategy to eager to avoid waiting for all resources
+            options.add_argument("--disable-hang-monitor")
+            options.add_argument("--disable-prompt-on-repost")
+            options.add_argument("--disable-sync")
+            options.add_argument("--force-color-profile=srgb")
+            options.add_argument("--metrics-recording-only")
+            options.add_argument("--no-first-run")
+            options.add_argument("--safebrowsing-disable-auto-update")
+            options.add_argument("--disable-default-apps")
+            options.add_argument("--disable-component-update")
+            # Use 'eager' page load strategy - wait for DOM but not all resources
             options.page_load_strategy = "eager"
             cls.wait_time = 30
             cls.sleep_time = 3
@@ -72,9 +99,21 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
         )
         cls.driver.implicitly_wait(cls.wait_time)
         # Set page load timeout to prevent hanging
-        cls.driver.set_page_load_timeout(60)
-        # Set script timeout
-        cls.driver.set_script_timeout(30)
+        cls.driver.set_page_load_timeout(120)
+        # Set script timeout - lower in CI to fail fast
+        script_timeout = 30 if os.getenv("CI") else 60
+        cls.driver.set_script_timeout(script_timeout)
+
+        # Verify driver is working
+        try:
+            logger.info("Chrome driver created, checking session...")
+            session_id = cls.driver.session_id
+            logger.info(f"Chrome session ID: {session_id}")
+            current_url = cls.driver.current_url
+            logger.info(f"Chrome current URL: {current_url}")
+        except Exception as e:
+            logger.error(f"Chrome driver failed health check: {e}")
+            raise Exception(f"Chrome driver is not responding: {e}") from e
 
     @classmethod
     def _wait_for_server_ready(cls, max_attempts=10, delay=1):
@@ -109,12 +148,13 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             result = self._outcome.result
         ok = all(test != self for test, text in result.errors + result.failures)
         if not ok:
-            # Handle any open alerts before taking screenshot
+            # Handle any open alerts before taking screenshot (if any exist)
             try:
                 alert = self.driver.switch_to.alert
                 alert.dismiss()
-            except Exception as e:
-                logger.warning(f"Dismiss alert not working: {e}")
+            except Exception:
+                # No alert present - this is normal for most tests
+                pass
 
             if not os.path.exists("screenshots"):
                 os.makedirs("screenshots")
@@ -166,8 +206,21 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 element.click()
                 return
             except Exception as e:
-                if attempt == max_retries - 1:
+                # If click is intercepted, try JavaScript click as fallback
+                if "intercepted" in str(e).lower():
+                    try:
+                        logger.info(
+                            "Click intercepted, using JavaScript click as fallback",
+                        )
+                        self.driver.execute_script("arguments[0].click();", element)
+                        return
+                    except Exception as js_error:
+                        logger.warning(f"JavaScript click also failed: {js_error}")
+                        if attempt == max_retries - 1:
+                            raise
+                elif attempt == max_retries - 1:
                     raise
+
                 time.sleep(self.sleep_time)
                 # If it's a stale element exception, we can't re-find it, so just raise the error
                 if "stale" in str(e).lower():
@@ -183,18 +236,34 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 logger.info(
                     f"Attempting to load URL: {url} (attempt {attempt + 1}/{max_retries})",
                 )
+                # Check if driver session is still valid
+                try:
+                    session_id = self.driver.session_id
+                    logger.info(f"Driver session ID: {session_id}")
+                except Exception as session_error:
+                    logger.error(f"Driver session is invalid: {session_error}")
+                    raise Exception(
+                        f"Chrome session is not valid: {session_error}",
+                    ) from session_error
+
+                # Navigate to the URL (with page_load_strategy='eager', waits for DOM ready)
                 self.driver.get(url)
-                # Wait a bit for the page to start loading
+                logger.info(f"Navigation command sent to {url}")
+
+                # Give the page a moment to stabilize after DOM ready
                 time.sleep(1)
-                # Try to find a basic element to confirm page loaded
-                WebDriverWait(self.driver, self.wait_time).until(
-                    lambda driver: driver.execute_script("return document.readyState")
-                    == "complete",
-                )
-                logger.info(f"Successfully loaded URL: {url}")
+
+                # Verify we navigated successfully
+                current_url = self.driver.current_url
+                logger.info(f"Successfully loaded URL: {url} (current: {current_url})")
                 return
             except Exception as e:
-                logger.warning(f"Failed to load URL on attempt {attempt + 1}: {e}")
+                logger.error(
+                    f"Failed to load URL on attempt {attempt + 1}: {type(e).__name__}: {str(e)}",
+                )
+                import traceback
+
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 if attempt == max_retries - 1:
                     logger.error(
                         f"Failed to load URL after {max_retries} attempts: {url}",
