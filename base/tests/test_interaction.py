@@ -30,7 +30,7 @@ class InteractionTest(VerboseLiveServerTestCase):
         )
         self.action = ActionChains(self.driver)
         self.driver.maximize_window()
-        self.driver.get(self.live_server_url + "/")
+        self.safe_get(self.live_server_url + "/")
 
     def test_interaction(self):
         # -------------------- Login test --------------------

@@ -2,6 +2,8 @@ import logging
 import os
 import time
 from platform import uname
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.servers.basehttp import WSGIRequestHandler
@@ -25,6 +27,10 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+
+        # Wait for the server to be ready
+        cls._wait_for_server_ready()
+
         options = webdriver.ChromeOptions()
         if os.getenv("CI"):
             # Github Actions
@@ -38,6 +44,14 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-backgrounding-occluded-windows")
             options.add_argument("--disable-renderer-backgrounding")
+            options.add_argument("--disable-software-rasterizer")
+            options.add_argument("--disable-web-security")
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_argument("--single-process")
+            options.add_argument("--disable-setuid-sandbox")
+            options.add_argument("--remote-debugging-port=9222")
+            # Set page load strategy to eager to avoid waiting for all resources
+            options.page_load_strategy = "eager"
             cls.wait_time = 30
             cls.sleep_time = 3
             cls.max_retries = 3
@@ -61,6 +75,32 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options=options,
         )
         cls.driver.implicitly_wait(cls.wait_time)
+        # Set page load timeout to prevent hanging
+        cls.driver.set_page_load_timeout(60)
+        # Set script timeout
+        cls.driver.set_script_timeout(30)
+
+    @classmethod
+    def _wait_for_server_ready(cls, max_attempts=10, delay=1):
+        """Wait for the Django test server to be ready to accept connections."""
+        for attempt in range(max_attempts):
+            try:
+                # Try to connect to the server
+                with urlopen(cls.live_server_url, timeout=5) as response:
+                    response.read()
+                logger.info(f"Server is ready at {cls.live_server_url}")
+                return
+            except (URLError, OSError) as e:
+                if attempt < max_attempts - 1:
+                    logger.info(
+                        f"Server not ready yet, waiting... (attempt {attempt + 1}/{max_attempts})",
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(
+                        f"Server failed to become ready after {max_attempts} attempts",
+                    )
+                    raise Exception(f"Django test server did not start properly: {e}")
 
     def tearDown(self):
         # Source: https://stackoverflow.com/a/39606065
@@ -137,6 +177,35 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 if "stale" in str(e).lower():
                     raise e
 
+    def safe_get(self, url, max_retries=None):
+        """Safely navigate to a URL with retry logic."""
+        if max_retries is None:
+            max_retries = self.max_retries
+
+        for attempt in range(max_retries):
+            try:
+                logger.info(
+                    f"Attempting to load URL: {url} (attempt {attempt + 1}/{max_retries})",
+                )
+                self.driver.get(url)
+                # Wait a bit for the page to start loading
+                time.sleep(1)
+                # Try to find a basic element to confirm page loaded
+                WebDriverWait(self.driver, self.wait_time).until(
+                    lambda driver: driver.execute_script("return document.readyState")
+                    == "complete",
+                )
+                logger.info(f"Successfully loaded URL: {url}")
+                return
+            except Exception as e:
+                logger.warning(f"Failed to load URL on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    logger.error(
+                        f"Failed to load URL after {max_retries} attempts: {url}",
+                    )
+                    raise
+                time.sleep(self.sleep_time)
+
     class VersboseLiveServerThread(LiveServerThread):
         def _create_server(self, connections_override=None):
             WSGIRequestHandler.handle = WSGIRequestHandler.handle_one_request
@@ -150,7 +219,7 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
 
 
 def login_testuser(self):
-    self.driver.get(self.live_server_url + "/")
+    self.safe_get(self.live_server_url + "/")
     username_input = self.wait_for_element(By.ID, "id_username")
     password_input = self.wait_for_element(By.ID, "id_password")
     submit_button = self.wait_for_element_clickable(By.CSS_SELECTOR, "button.submit")
