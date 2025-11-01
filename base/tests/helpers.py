@@ -24,6 +24,7 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         options = webdriver.ChromeOptions()
         if os.getenv("CI"):
             # Github Actions
@@ -60,7 +61,6 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options=options,
         )
         cls.driver.implicitly_wait(cls.wait_time)
-        super().setUpClass()
 
     def tearDown(self):
         # Source: https://stackoverflow.com/a/39606065
