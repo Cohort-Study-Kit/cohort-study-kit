@@ -1,6 +1,8 @@
+import logging
 import time
 
 from django.contrib.auth import get_user_model
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -11,6 +13,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .helpers import login_testuser
 from .helpers import VerboseLiveServerTestCase
+
+logger = logging.getLogger(__name__)
 
 # from selenium.webdriver.common.action_chains import ActionChains
 
@@ -40,9 +44,43 @@ class InteractionTest(VerboseLiveServerTestCase):
         # Try to log in with a non-existing user account.
         username_input.send_keys("non_existing")
         password_input.send_keys("user")
+        logger.info("Clicking submit button with invalid credentials")
         submit_button.click()
-        WebDriverWait(self.driver, self.wait_time).until(EC.alert_is_present())
-        wrong_login_alert = self.driver.switch_to.alert
+
+        # Wait for navigation to complete (URL might stay the same for form resubmission)
+        logger.info("Waiting for page navigation after failed login")
+        time.sleep(1)
+
+        # Wait for document to be complete
+        WebDriverWait(self.driver, self.wait_time).until(
+            lambda driver: driver.execute_script("return document.readyState")
+            == "complete",
+        )
+        logger.info(f"Page loaded, current URL: {self.driver.current_url}")
+
+        # Log page source to debug
+        page_source = self.driver.page_source
+        if "form.errors" in page_source or "Wrong login" in page_source:
+            logger.info("Page contains error indicators")
+        else:
+            logger.warning("Page does not contain expected error indicators")
+            logger.info(f"Page source snippet: {page_source[:500]}")
+
+        # Wait a bit more for JavaScript to execute
+        time.sleep(1)
+
+        # Check if alert is present without long wait first
+        try:
+            alert = self.driver.switch_to.alert
+            logger.info(f"Alert found immediately with text: {alert.text}")
+            wrong_login_alert = alert
+        except NoAlertPresentException:
+            # If no alert yet, wait for it
+            logger.info("No immediate alert, waiting for alert to appear")
+            WebDriverWait(self.driver, self.wait_time).until(EC.alert_is_present())
+            logger.info("Alert detected after wait")
+            wrong_login_alert = self.driver.switch_to.alert
+
         self.assertEqual(wrong_login_alert.text, "Wrong login, please try again.")
         wrong_login_alert.accept()
 
