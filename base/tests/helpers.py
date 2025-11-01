@@ -37,17 +37,12 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.binary_location = "/usr/bin/google-chrome-stable"
             options.add_argument("--headless=new")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
             options.add_argument("--disable-extensions")
-            options.add_argument("--disable-background-timer-throttling")
-            options.add_argument("--disable-backgrounding-occluded-windows")
-            options.add_argument("--disable-renderer-backgrounding")
-            options.add_argument("--disable-software-rasterizer")
-            options.add_argument("--disable-blink-features=AutomationControlled")
-            # Set page load strategy to eager to avoid waiting for all resources
-            options.page_load_strategy = "eager"
+            # Set page load strategy to none - we'll wait for elements manually
+            options.page_load_strategy = "none"
             cls.wait_time = 30
             cls.sleep_time = 3
             cls.max_retries = 3
@@ -75,6 +70,17 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
         cls.driver.set_page_load_timeout(60)
         # Set script timeout
         cls.driver.set_script_timeout(30)
+
+        # Verify driver is working
+        try:
+            logger.info("Chrome driver created, checking session...")
+            session_id = cls.driver.session_id
+            logger.info(f"Chrome session ID: {session_id}")
+            current_url = cls.driver.current_url
+            logger.info(f"Chrome current URL: {current_url}")
+        except Exception as e:
+            logger.error(f"Chrome driver failed health check: {e}")
+            raise Exception(f"Chrome driver is not responding: {e}") from e
 
     @classmethod
     def _wait_for_server_ready(cls, max_attempts=10, delay=1):
@@ -183,18 +189,39 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 logger.info(
                     f"Attempting to load URL: {url} (attempt {attempt + 1}/{max_retries})",
                 )
+                # Check if driver session is still valid
+                try:
+                    session_id = self.driver.session_id
+                    logger.info(f"Driver session ID: {session_id}")
+                except Exception as session_error:
+                    logger.error(f"Driver session is invalid: {session_error}")
+                    raise Exception(
+                        f"Chrome session is not valid: {session_error}",
+                    ) from session_error
+
+                # Navigate to the URL
                 self.driver.get(url)
-                # Wait a bit for the page to start loading
-                time.sleep(1)
-                # Try to find a basic element to confirm page loaded
+                logger.info(f"Navigation command sent to {url}")
+
+                # Wait for page to be in a usable state
+                # Since page_load_strategy is 'none', we need to wait manually
                 WebDriverWait(self.driver, self.wait_time).until(
                     lambda driver: driver.execute_script("return document.readyState")
-                    == "complete",
+                    in ["interactive", "complete"],
                 )
+                logger.info("Page reached interactive/complete state")
+
+                # Give it a bit more time to stabilize
+                time.sleep(2)
                 logger.info(f"Successfully loaded URL: {url}")
                 return
             except Exception as e:
-                logger.warning(f"Failed to load URL on attempt {attempt + 1}: {e}")
+                logger.error(
+                    f"Failed to load URL on attempt {attempt + 1}: {type(e).__name__}: {str(e)}",
+                )
+                import traceback
+
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 if attempt == max_retries - 1:
                     logger.error(
                         f"Failed to load URL after {max_retries} attempts: {url}",
