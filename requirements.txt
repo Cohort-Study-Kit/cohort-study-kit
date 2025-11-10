@@ -13,7 +13,7 @@ django-admin-csvexport==2.3
 gunicorn==23.0.0
 JSON-minify==0.3.0
 mysqlclient==2.2.7
-pre-commit==4.3.0
+pre-commit==4.4.0
 python-dotenv==1.2.1
 selenium==4.38.0
 webdriver-manager==4.0.2
