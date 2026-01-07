@@ -1,5 +1,5 @@
 crispy-bootstrap5==2025.6
-Django==5.2.8
+Django==6.0.1
 django-allauth==65.13.1
 django-browser-reload==1.21.0
 django-crispy-forms==2.5
