@@ -9,7 +9,7 @@ django-jsonform==2.23.2
 django-mysql==4.19.0
 django-npm-mjs==3.2.1
 django-simple-history==3.10.1
-django-admin-csvexport==2.3
+django-admin-csvexport==2.4.1
 gunicorn==23.0.0
 JSON-minify==0.3.0
 mysqlclient==2.2.7
