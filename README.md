@@ -29,12 +29,16 @@ Originally developed for the COPSAC (Copenhagen Prospective Studies on Asthma in
 
 ### Prerequisites
 
-- Python >=3.12 with venv support
+- Python >=3.12 with venv support (3.14+ recommended)
 
 On Ubuntu (Noble+), execute:
 
 ```bash
+# For Python 3.12
 sudo apt install python3.12 python3.12-venv python3.12-dev libmysqlclient-dev build-essential npm nodejs -y
+
+# Or for Python 3.14 (if available)
+sudo apt install python3.14 python3.14-venv python3.14-dev libmysqlclient-dev build-essential npm nodejs -y
 ```
 
 ### Quick Start

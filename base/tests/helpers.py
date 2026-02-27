@@ -20,6 +20,46 @@ from webdriver_manager.core.os_manager import ChromeType
 logger = logging.getLogger(__name__)
 
 
+def find_browser_binary():
+    """Find a suitable browser binary for Selenium tests.
+
+    Checks for Chrome/Chromium first, then falls back to Brave browser.
+    Returns the path to the first found binary, or None if none found.
+    """
+    # Check for Chrome/Chromium first
+    chrome_paths = [
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+        "/usr/local/bin/google-chrome",
+        "/usr/local/bin/chromium",
+        "/snap/bin/chromium",
+    ]
+
+    for path in chrome_paths:
+        if os.path.exists(path):
+            logger.info(f"Found Chrome/Chromium browser at: {path}")
+            return path
+
+    # Fall back to Brave browser
+    brave_paths = [
+        "/usr/bin/brave-browser",
+        "/usr/bin/brave",
+        "/usr/local/bin/brave-browser",
+        "/usr/local/bin/brave",
+        "/snap/bin/brave",
+    ]
+
+    for path in brave_paths:
+        if os.path.exists(path):
+            logger.info(f"Found Brave browser at: {path}")
+            return path
+
+    logger.warning("No Chrome/Chromium or Brave browser found")
+    return None
+
+
 class VerboseLiveServerTestCase(StaticLiveServerTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,7 +87,9 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
 
         if os.getenv("CI"):
             # Github Actions
-            options.binary_location = "/usr/bin/google-chrome-stable"
+            browser_binary = find_browser_binary()
+            if browser_binary:
+                options.binary_location = browser_binary
             options.add_argument("--headless=new")
             options.add_argument("--window-size=1920,1080")
             options.add_argument("--no-sandbox")
@@ -80,7 +122,9 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             cls.max_retries = 3
         elif "microsoft" in uname().release:
             # Microsoft WSL
-            options.binary_location = "/usr/bin/google-chrome-stable"
+            browser_binary = find_browser_binary()
+            if browser_binary:
+                options.binary_location = browser_binary
             options.add_argument("--enable-features=UseOzonePlatform")
             options.add_argument("--ozone-platform=wayland")
             cls.wait_time = 10
@@ -88,13 +132,17 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             cls.max_retries = 2
         else:
             # Ubuntu Desktop, etc.
+            browser_binary = find_browser_binary()
+            if browser_binary:
+                options.binary_location = browser_binary
             cls.wait_time = 10
             cls.sleep_time = 2
             cls.max_retries = 2
+        # Use ChromeType.GOOGLE for all browsers since Chrome/Chromium/Brave are compatible
+        # The binary_location in options determines which actual browser runs
+        driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
         cls.driver = webdriver.Chrome(
-            service=ChromiumService(
-                ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
-            ),
+            service=ChromiumService(driver_path),
             options=options,
         )
         cls.driver.implicitly_wait(cls.wait_time)

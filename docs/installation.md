@@ -2,14 +2,18 @@
 
 ## Prerequisites
 
-- Python >=3.12 with venv support
+- Python >=3.12 with venv support (3.14+ recommended)
 - Node.js and npm for JavaScript transpilation
 - MariaDB (for production) or SQLite (for development)
 
 ### Ubuntu (Noble+)
 
 ```bash
+# For Python 3.12 (LTS compatible)
 sudo apt install python3.12 python3.12-venv python3.12-dev libmysqlclient-dev build-essential npm nodejs -y
+
+# Or for Python 3.14 (if available)
+sudo apt install python3.14 python3.14-venv python3.14-dev libmysqlclient-dev build-essential npm nodejs -y
 ```
 
 ## Development Environment Setup

@@ -18,5 +18,5 @@ python-dotenv==1.2.1
 selenium==4.40.0
 webdriver-manager==4.0.2
 nodejs-wheel==24.13.0
-pip>=25.2
+pip>=25.3
 watchdog==6.0.0

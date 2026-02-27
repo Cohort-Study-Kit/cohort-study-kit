@@ -7,7 +7,7 @@ This document provides guidance for AI coding assistants working on the Cohort S
 Cohort Study Kit is a Django-based platform for managing longitudinal cohort studies. Originally developed for COPSAC (Copenhagen Prospective Studies on Asthma in Childhood), it's designed to help research teams systematically collect, store, and manage data from study participants over time.
 
 **License**: GNU Lesser General Public License (LGPL)
-**Primary Language**: Python 3.12+
+**Primary Language**: Python 3.12+ (3.14+ recommended)
 **Framework**: Django 5.2.7
 **Database**: MariaDB (production) / SQLite (development)
 
@@ -96,7 +96,7 @@ def my_view(request):
 - Follow PEP 8 with Black formatting (88 char line length)
 - Use double quotes for strings
 - Import ordering via `reorder-python-imports`
-- Use `pyupgrade` for modern Python syntax (3.10+)
+- Use `pyupgrade` for modern Python syntax (3.12+, but 3.14+ recommended)
 - Type hints encouraged but not required
 - Flake8 max line length: 120 characters
 

@@ -47,7 +47,7 @@ class Examination(models.Model):
         help_text="Indicate Quality Status. Locked or Qualitychecks",
         null=True,
         blank=True,
-        choices=LockStatusChoices.choices,
+        choices=LockStatusChoices,
     )
 
     is_deleted = models.BooleanField(

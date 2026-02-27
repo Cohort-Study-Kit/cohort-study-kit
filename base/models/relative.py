@@ -146,7 +146,7 @@ class Relative(models.Model):
     old_rel_id = models.IntegerField(default=None, unique=True, null=True, blank=True)
     relation_type = models.CharField(
         max_length=15,
-        choices=RelativeTypes.choices,
+        choices=RelativeTypes,
         default=RelativeTypes.UNKNOWN,
     )
     fk_proband = models.ForeignKey(

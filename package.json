@@ -8,6 +8,6 @@
     "url": "git+https://github.com/copsac-admin/copsac-web.git"
   },
   "dependencies": {
-    "pnpm": "^10.20.0"
+    "pnpm": "^10.27.0"
   }
 }
