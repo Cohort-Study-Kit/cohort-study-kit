@@ -10,13 +10,13 @@ django-mysql==4.19.0
 django-npm-mjs==3.2.1
 django-simple-history==3.10.1
 django-admin-csvexport==2.4.1
-gunicorn==23.0.0
+gunicorn==24.1.1
 JSON-minify==0.3.0
 mysqlclient==2.2.7
 pre-commit==4.5.0
 python-dotenv==1.2.1
-selenium==4.38.0
+selenium==4.40.0
 webdriver-manager==4.0.2
-nodejs-wheel==24.11.1
+nodejs-wheel==24.13.0
 pip>=25.2
 watchdog==6.0.0
