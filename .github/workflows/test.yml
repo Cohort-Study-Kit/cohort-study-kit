@@ -35,7 +35,7 @@ jobs:
           ./manage.py test
       - name: Upload failed test screenshots
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: failure-artifacts
           path: ${{ github.workspace }}/screenshots/
