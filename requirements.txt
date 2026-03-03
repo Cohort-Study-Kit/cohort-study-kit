@@ -12,7 +12,7 @@ django-simple-history==3.11.0
 django-admin-csvexport==2.4.1
 gunicorn==24.1.1
 JSON-minify==0.3.0
-mysqlclient==2.2.7
+mysqlclient==2.2.8
 pre-commit==4.5.1
 python-dotenv==1.2.1
 selenium==4.40.0
