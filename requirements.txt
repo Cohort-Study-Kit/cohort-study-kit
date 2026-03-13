@@ -14,7 +14,7 @@ gunicorn==25.1.0
 JSON-minify==0.3.0
 mysqlclient==2.2.8
 pre-commit==4.5.1
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 selenium==4.40.0
 webdriver-manager==4.0.2
 nodejs-wheel==24.13.0
