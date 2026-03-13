@@ -69,19 +69,19 @@ def retrieve_external_values(examination, startdate):
     "Get external values for an examination given startdate."
     external_values = {}
     for external_value in (
-        examination.fk_dataset.form["external_values"]
-        if "external_values" in examination.fk_dataset.form
+        examination.dataset.form["external_values"]
+        if "external_values" in examination.dataset.form
         else []
     ):
         if external_value["type"] == "column":
-            visit = examination.fk_visit
+            visit = examination.visit
             other_examination = visit.examination_set.filter(
-                fk_dataset__name=external_value["dataset"],
+                dataset__name=external_value["dataset"],
             ).first()
             value = ""
             if other_examination:
                 cell = other_examination.cell_set.filter(
-                    fk_column__name=external_value["column"],
+                    column__name=external_value["column"],
                 ).first()
                 if cell:
                     value = cell.value
@@ -89,9 +89,9 @@ def retrieve_external_values(examination, startdate):
             column_name = external_value["column"]
             external_values[f"column${dataset_name}${column_name}"] = value
         elif external_value["type"] == "property":
-            visit = examination.fk_visit
+            visit = examination.visit
             other_examination = visit.examination_set.filter(
-                fk_dataset__name=external_value["dataset"],
+                dataset__name=external_value["dataset"],
             ).first()
             value = ""
             if other_examination:
@@ -105,7 +105,7 @@ def retrieve_external_values(examination, startdate):
             external_values[f"{treatment_type}${code}"] = check_healthcare_record(
                 treatment_type,
                 code,
-                examination.fk_visit.fk_proband,
+                examination.visit.proband,
                 startdate,
             )
     return external_values
@@ -119,8 +119,8 @@ def get_external_values(
 ) -> HttpResponse:
     examination = (
         Examination.objects.filter(id=examination_id)
-        .select_related("fk_dataset")
-        .annotate(dataset_form_json=Cast("fk_dataset__form", TextField()))
+        .select_related("dataset")
+        .annotate(dataset_form_json=Cast("dataset__form", TextField()))
         .first()
     )
     if not examination:
@@ -136,33 +136,33 @@ def examination_form(
 ) -> HttpResponse:
     examination = (
         Examination.objects.filter(id=examination_id)
-        .select_related("fk_dataset")
-        .annotate(dataset_form_json=Cast("fk_dataset__form", TextField()))
+        .select_related("dataset")
+        .annotate(dataset_form_json=Cast("dataset__form", TextField()))
         .first()
     )
     if not examination:
         raise Http404("Examination does not exist")
     latest_examination = None
     if (
-        examination.fk_dataset.data_schema == {}
+        examination.dataset.data_schema == {}
     ):  # If no data schema, we use columns instead
         latest_cell = (
             Cell.objects.filter(
                 (~Q(value__exact="") & Q(value__isnull=False)),
-                fk_examination__fk_dataset=examination.fk_dataset,
-                fk_examination__fk_visit__fk_proband=examination.fk_visit.fk_proband,
+                examination__dataset=examination.dataset,
+                examination__visit__proband=examination.visit.proband,
             )
-            .order_by("-fk_examination__startdate")
+            .order_by("-examination__startdate")
             .first()
         )
         if latest_cell:
-            latest_examination = latest_cell.fk_examination
+            latest_examination = latest_cell.examination
     else:
         latest_examination = (
             Examination.objects.filter(
                 (~Q(data__exact={})),
-                fk_dataset=examination.fk_dataset,
-                fk_visit__fk_proband=examination.fk_visit.fk_proband,
+                dataset=examination.dataset,
+                visit__proband=examination.visit.proband,
             )
             .order_by("-startdate")
             .first()
@@ -170,10 +170,10 @@ def examination_form(
     if not examination:
         raise Http404("Examination does not exist")
     title = (
-        f"{examination.fk_dataset.title}"
-        f" - {examination.fk_visit.fk_visit_type.name}"
-        f" - {examination.fk_visit.fk_proband.name}"
-        f" - Copsac ID: {examination.fk_visit.fk_proband.copsac_id}"
+        f"{examination.dataset.title}"
+        f" - {examination.visit.visit_type.name}"
+        f" - {examination.visit.proband.name}"
+        f" - Copsac ID: {examination.visit.proband.copsac_id}"
     )
     breadcrumbs = []
     if latest_examination:
@@ -186,23 +186,23 @@ def examination_form(
                 "</a>",
             )
     context = {
-        "copsac_id": examination.fk_visit.fk_proband.copsac_id,
-        "visit_id": examination.fk_visit.id,
-        "examination_name": examination.fk_dataset.name,
+        "copsac_id": examination.visit.proband.copsac_id,
+        "visit_id": examination.visit.id,
+        "examination_name": examination.dataset.name,
         "form_json": examination.dataset_form_json,
         "id": examination.id,
         "form_options_json": json.dumps(
             {
-                "use_finishdate": examination.fk_dataset.use_finishdate,
-                "status_choices": examination.fk_dataset.status_choices,
+                "use_finishdate": examination.dataset.use_finishdate,
+                "status_choices": examination.dataset.status_choices,
                 "columns": {
                     column.name: {
                         "format": column.col_format,
                         "title": column.title,
                     }
-                    for column in examination.fk_dataset.column_set.all()
+                    for column in examination.dataset.column_set.all()
                 },
-                "data_schema": examination.fk_dataset.data_schema,
+                "data_schema": examination.dataset.data_schema,
                 "external_values": retrieve_external_values(
                     examination,
                     examination.startdate,
@@ -216,11 +216,11 @@ def examination_form(
                 "data": examination.data,
                 "column_data": {
                     column.name: getattr(
-                        examination.cell_set.filter(fk_column=column).first(),
+                        examination.cell_set.filter(column=column).first(),
                         "value",
                         "",
                     )
-                    for column in examination.fk_dataset.column_set.all()
+                    for column in examination.dataset.column_set.all()
                 },
                 "startdate": examination.startdate,
                 "finishdate": examination.finishdate,
@@ -231,10 +231,10 @@ def examination_form(
             },
             cls=DjangoJSONEncoder,
         ),
-        "proband": examination.fk_visit.fk_proband,
+        "proband": examination.visit.proband,
         "title": title,
         "breadcrumbs": breadcrumbs,
-        "version_time": examination.fk_dataset.updated,
+        "version_time": examination.dataset.updated,
     }
 
     return render(
@@ -265,13 +265,13 @@ def save_examination(
         value = examination_data["column_data"][column_name]
         column = Column.objects.filter(
             name=column_name,
-            fk_dataset=examination.fk_dataset,
+            dataset=examination.dataset,
         ).first()
         if not column:
             raise Http404("Column does not exist")
         Cell.objects.update_or_create(
-            fk_column=column,
-            fk_examination=examination,
+            column=column,
+            examination=examination,
             defaults={"value": value},
         )
     return JsonResponse(response, status=201)
@@ -291,33 +291,33 @@ def create_examination_form(request, copsac_id=0, visit_id=0):
         if visit_id == 0:
             visit = (
                 Visit.objects.filter(
-                    fk_proband__copsac_id=copsac_id,
+                    proband__copsac_id=copsac_id,
                     is_deleted=0,
                 )
-                .order_by("-visit_date", "status", "fk_visit_type__name")
+                .order_by("-visit_date", "status", "visit_type__name")
                 .first()
             )
             visit_id = visit.id
         else:
             visit = Visit.objects.filter(id=visit_id).first()
 
-        dataset = Dataset.objects.get(id=data["fk_dataset"])
+        dataset = Dataset.objects.get(id=data["dataset"])
         startdate = data["start_date"]
         enddate = None
         if data["end_date"]:
             enddate = data["end_date"]
 
         new_mdv = Examination.objects.create(
-            fk_dataset=dataset,
+            dataset=dataset,
             startdate=startdate,
             finishdate=enddate,
             status=data["status"],
             comments=data["comments"],
-            fk_visit=visit,
+            visit=visit,
         )
-        cols_to_add = Column.objects.filter(fk_dataset=dataset)
+        cols_to_add = Column.objects.filter(dataset=dataset)
         for col in cols_to_add:
-            Cell.objects.create(fk_column=col, fk_examination=new_mdv)
+            Cell.objects.create(column=col, examination=new_mdv)
 
         return redirect(
             reverse(
@@ -333,10 +333,10 @@ def create_examination_form(request, copsac_id=0, visit_id=0):
         if visit_id == 0:
             visit_id = (
                 Visit.objects.filter(
-                    fk_proband__copsac_id=copsac_id,
+                    proband__copsac_id=copsac_id,
                     is_deleted=0,
                 )
-                .order_by("-visit_date", "status", "fk_visit_type__name")
+                .order_by("-visit_date", "status", "visit_type__name")
                 .first()
                 .id
             )
@@ -350,7 +350,7 @@ def create_examination_form(request, copsac_id=0, visit_id=0):
         context = {
             "copsac_id": copsac_id,
             "proband": proband,
-            "fk_visit": visit,
+            "visit": visit,
             "dataset_options": dataset_options,
             "status_choices": Examination.STATUS_CHOICES,
         }
@@ -394,19 +394,19 @@ def get_examinations(self, visit_id):
             ),
             examination.id,
             examination.lock_status,
-            examination.fk_dataset.name,
-            examination.fk_dataset.title,
-            examination.fk_visit.fk_visit_type.name,
+            examination.dataset.name,
+            examination.dataset.title,
+            examination.visit.visit_type.name,
             examination.get_status_display(),
             examination.startdate,
             examination.comments,
         ]
         for examination in Examination.objects.filter(
-            fk_visit_id=visit_id,
+            visit_id=visit_id,
             is_deleted=False,
-            fk_dataset__isnull=False,
+            dataset__isnull=False,
         )
-        .exclude(fk_dataset__name__exact="")
-        .order_by("fk_dataset__name", "-startdate", "status")
+        .exclude(dataset__name__exact="")
+        .order_by("dataset__name", "-startdate", "status")
     ]
     return JsonResponse(response)

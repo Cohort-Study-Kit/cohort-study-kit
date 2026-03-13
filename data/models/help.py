@@ -9,7 +9,7 @@ class HelpData(models.Model):
     independently from the webapp.
     """
 
-    fk_dataset = models.ForeignKey(
+    dataset = models.ForeignKey(
         "data.Dataset",
         on_delete=models.CASCADE,
         default=None,

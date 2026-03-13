@@ -1077,13 +1077,13 @@ class InteractionTest(VerboseLiveServerTestCase):
 
         # Extra verification that it is actually 10 yrs
         # (in case we change primary key of the particular "10 yrs" Visit in our test data)
-        visit_type = self.driver.find_element(By.ID, "fk_visit").get_attribute(
+        visit_type = self.driver.find_element(By.ID, "visit").get_attribute(
             "value",
         )
         self.assertIn("10 yrs", visit_type)
 
         # Fill up the remaining fields
-        dataset_field = Select(self.driver.find_element(By.ID, "fk_dataset"))
+        dataset_field = Select(self.driver.find_element(By.ID, "dataset"))
         dataset_field.select_by_visible_text("Mbw")
 
         startdate_field = self.driver.find_element(By.ID, "id_start_date")
@@ -1588,7 +1588,7 @@ class InteractionTest(VerboseLiveServerTestCase):
             EC.url_contains("/visit/create/1111/"),
         )
 
-        visit_type = Select(self.driver.find_element(By.ID, "fk_visit_type"))
+        visit_type = Select(self.driver.find_element(By.ID, "visit_type"))
         visit_type.select_by_visible_text("Telephone consultation")
 
         status = Select(self.driver.find_element(By.ID, "id_status"))
@@ -1633,10 +1633,10 @@ class InteractionTest(VerboseLiveServerTestCase):
         )
 
         # Update the Visit
-        visit = Select(self.driver.find_element(By.ID, "fk_visit_type"))
+        visit = Select(self.driver.find_element(By.ID, "visit_type"))
         visit.select_by_visible_text("Allergy control")
 
-        sec_visit = Select(self.driver.find_element(By.ID, "fk_secondary_visit_type"))
+        sec_visit = Select(self.driver.find_element(By.ID, "secondary_visit_type"))
         sec_visit.select_by_visible_text("Telephone consultation")
 
         status = Select(self.driver.find_element(By.ID, "id_status"))

@@ -76,19 +76,19 @@ class Visit(models.Model):
     )
 
     class Meta:
-        ordering = ["fk_visit_type__id", "visit_date"]
+        ordering = ["visit_type__id", "visit_date"]
         indexes = [
             models.Index(fields=["id"]),
         ]
 
-    fk_proband = models.ForeignKey(
+    proband = models.ForeignKey(
         "base.Proband",
         on_delete=models.CASCADE,
         default=None,
         null=True,
         blank=True,
     )
-    fk_visit_type = models.ForeignKey(
+    visit_type = models.ForeignKey(
         "data.VisitType",
         related_name="PrimaryVisitType",
         on_delete=models.CASCADE,
@@ -96,7 +96,7 @@ class Visit(models.Model):
         null=True,
         blank=True,
     )
-    fk_secondary_visit_type = models.ForeignKey(
+    secondary_visit_type = models.ForeignKey(
         "data.VisitType",
         related_name="SecondaryVisitType",
         on_delete=models.CASCADE,
@@ -135,7 +135,7 @@ class Visit(models.Model):
     )
 
     def __str__(self):
-        return f"{self.fk_visit_type.name} ({self.fk_proband})"
+        return f"{self.visit_type.name} ({self.proband})"
 
     def get_absolute_url(self):
         return reverse("data_Visit_detail", args=(self.pk,))

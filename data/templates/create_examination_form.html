@@ -20,19 +20,19 @@
 
       <div class="row mt-4">
         <div class="col-sm-3">
-        <label class="col-form-label" for="fk_visit">Visit:</label>
+        <label class="col-form-label" for="visit">Visit:</label>
         </div>
         <div class="col-sm-6">
-        <input class="form-control" id="fk_visit" name="fk_visit" value="{{fk_visit.fk_visit_type.name|default_if_none:"" }}" readonly=true>
+        <input class="form-control" id="visit" name="visit" value="{{visit.visit_type.name|default_if_none:"" }}" readonly=true>
         </div>
       </div>
 
       <div class="row mt-4">
         <div class="col-sm-3">
-        <label class="col-form-label" for="fk_dataset">Dataset:</label>
+        <label class="col-form-label" for="dataset">Dataset:</label>
         </div>
         <div class="col-sm-6">
-        <select class="form-control form-select" id="fk_dataset" name="fk_dataset" required="True">
+        <select class="form-control form-select" id="dataset" name="dataset" required="True">
           <option value=""> </option>
           {% for option in dataset_options %}
             <option value="{{option.id}}">{{ option.name | capfirst }}</option>

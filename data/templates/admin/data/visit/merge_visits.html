@@ -115,7 +115,7 @@
                         <input type="radio" name="{{ form.keep_visit.html_name }}" value="{{ visit.pk }}" {% if form.keep_visit.value == visit.pk|unlocalize %}checked{% endif %}>
                         <strong>{{ visit }}</strong>
                         <div class="visit-details">
-                            <div><strong>Visit Type:</strong> {{ visit.fk_visit_type }}</div>
+                            <div><strong>Visit Type:</strong> {{ visit.visit_type }}</div>
                             <div><strong>Status:</strong> {{ visit.get_status_display }}</div>
                             <div><strong>Visit Date:</strong> {{ visit.visit_date|date:"Y-m-d"|default:"Not set" }}</div>
                             <div><strong>Examinations:</strong> {{ visit.examination_set.count }}</div>

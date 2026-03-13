@@ -25,16 +25,16 @@ class Examination(models.Model):
     )
 
     def get_status_choices(self):  # Options based on restrictions set in dataset table
-        if not self.fk_dataset:
+        if not self.dataset:
             return self.STATUS_CHOICES
         return tuple(
             filter(
-                lambda choice: self.fk_dataset.status_choices[choice[0]],
+                lambda choice: self.dataset.status_choices[choice[0]],
                 self.STATUS_CHOICES,
             ),
         )
 
-    fk_dataset = models.ForeignKey(
+    dataset = models.ForeignKey(
         "data.Dataset",
         on_delete=models.CASCADE,
         default=None,
@@ -85,12 +85,12 @@ class Examination(models.Model):
         return self.lock_status == LockStatusChoices.LOCKED
 
     class Meta:
-        ordering = ["-fk_visit__id"]
+        ordering = ["-visit__id"]
         indexes = [
-            models.Index(fields=["fk_visit"]),
+            models.Index(fields=["visit"]),
         ]
 
-    fk_visit = models.ForeignKey(
+    visit = models.ForeignKey(
         "data.Visit",
         on_delete=models.CASCADE,
         default=None,
@@ -98,11 +98,11 @@ class Examination(models.Model):
 
     data = JSONField(
         schema=lambda instance=None: (
-            instance.fk_dataset.data_schema
+            instance.dataset.data_schema
             if instance
-            and hasattr(instance, "fk_dataset")
-            and instance.fk_dataset
-            and bool(instance.fk_dataset.data_schema)
+            and hasattr(instance, "dataset")
+            and instance.dataset
+            and bool(instance.dataset.data_schema)
             else {"type": "object", "properties": {}}
         ),
         blank=True,
@@ -124,7 +124,7 @@ class Examination(models.Model):
     )
 
     def __str__(self):
-        return f"{self.fk_visit} - {self.fk_dataset}"
+        return f"{self.visit} - {self.dataset}"
 
     def get_absolute_url(self):
         return reverse("data:examination-form", args=(self.pk,))
@@ -134,7 +134,7 @@ class Examination(models.Model):
 
 class Cell(models.Model):
     # Foreign Keys
-    fk_column = models.ForeignKey(
+    column = models.ForeignKey(
         "data.Column",
         on_delete=models.CASCADE,
         default=None,
@@ -148,7 +148,7 @@ class Cell(models.Model):
         max_length=2000,
     )
 
-    fk_examination = models.ForeignKey(
+    examination = models.ForeignKey(
         "data.Examination",
         on_delete=models.CASCADE,
         default=None,
@@ -156,19 +156,19 @@ class Cell(models.Model):
     )
 
     def __str__(self):
-        return f"{self.fk_column.name}: {self.value}"
+        return f"{self.column.name}: {self.value}"
 
     class Meta:
-        ordering = ["fk_examination"]
+        ordering = ["examination"]
         constraints = [
             UniqueConstraint(
-                fields=["fk_column", "fk_examination"],
+                fields=["column", "examination"],
                 name="unique_column_and_examination",
             ),
         ]
         indexes = [
             models.Index(
-                fields=["fk_column", "fk_examination"],
+                fields=["column", "examination"],
                 name="main_datapoint",
             ),
         ]

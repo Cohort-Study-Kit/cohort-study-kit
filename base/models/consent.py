@@ -50,23 +50,23 @@ class Consent(models.Model):
     is_deleted = models.BooleanField(default=False)
     comments = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=9, choices=STATUS_CHOICES)
-    fk_consent_type = models.ForeignKey(
+    consent_type = models.ForeignKey(
         "base.ConsentType",
         on_delete=models.CASCADE,
     )
-    fk_proband = models.ForeignKey(
+    proband = models.ForeignKey(
         "base.Proband",
         on_delete=models.CASCADE,
     )
     history = HistoricalRecords(table_name="zz_base_consent")
 
     def __str__(self):
-        return f"{self.fk_proband.firstname} {self.fk_proband.lastname}, {self.fk_consent_type.name}"
+        return f"{self.proband.firstname} {self.proband.lastname}, {self.consent_type.name}"
 
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=["fk_consent_type", "fk_proband"],
+                fields=["consent_type", "proband"],
                 name="unique_consent",
             ),
         ]

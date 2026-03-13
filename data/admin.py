@@ -41,9 +41,9 @@ backoffice.add_action(csvexport)
 
 @admin.register(Column)
 class ColumnAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
-    list_display = ["fk_dataset", "name"]
+    list_display = ["dataset", "name"]
     search_fields = ["name"]
-    list_filter = ["fk_dataset"]
+    list_filter = ["dataset"]
 
 
 class ColumnBackoffice(
@@ -51,9 +51,9 @@ class ColumnBackoffice(
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
 ):
-    list_display = ["fk_dataset", "name"]
+    list_display = ["dataset", "name"]
     search_fields = ["name"]
-    list_filter = ["fk_dataset"]
+    list_filter = ["dataset"]
 
 
 backoffice.register(Column, ColumnBackoffice)
@@ -83,8 +83,8 @@ class VisitTypeAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
                 status__in=["active", "resting"],
             ):
                 visit, created = Visit.objects.get_or_create(
-                    fk_proband=proband,
-                    fk_visit_type=visit_type,
+                    proband=proband,
+                    visit_type=visit_type,
                     defaults={"status": "planned"},
                 )
                 if not created:
@@ -92,8 +92,8 @@ class VisitTypeAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
                 visit_created = True
                 for dataset in visit_type.dataset_set.all():
                     Examination.objects.create(
-                        fk_visit=visit,
-                        fk_dataset=dataset,
+                        visit=visit,
+                        dataset=dataset,
                         status="planned",
                     )
             if visit_created:
@@ -133,8 +133,8 @@ class VisitTypeBackoffice(
                 status__in=["active", "resting"],
             ):
                 visit, created = Visit.objects.get_or_create(
-                    fk_proband=proband,
-                    fk_visit_type=visit_type,
+                    proband=proband,
+                    visit_type=visit_type,
                     defaults={"status": "planned"},
                 )
                 if not created:
@@ -142,8 +142,8 @@ class VisitTypeBackoffice(
                 visit_created = True
                 for dataset in visit_type.dataset_set.all():
                     Examination.objects.create(
-                        fk_visit=visit,
-                        fk_dataset=dataset,
+                        visit=visit,
+                        dataset=dataset,
                         status="planned",
                     )
             if visit_created:
@@ -197,9 +197,9 @@ backoffice.register(HelpDoc, HelpDocBackoffice)
 
 @admin.register(HelpData)
 class HelpDataAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
-    list_display = ["fk_dataset", "col_1", "col_2", "lookup_value"]
+    list_display = ["dataset", "col_1", "col_2", "lookup_value"]
     search_fields = ["col_1", "col_2", "lookup_value"]
-    list_filter = ["fk_dataset"]
+    list_filter = ["dataset"]
 
 
 class HelpDataBackoffice(
@@ -207,9 +207,9 @@ class HelpDataBackoffice(
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
 ):
-    list_display = ["fk_dataset", "col_1", "col_2", "lookup_value"]
+    list_display = ["dataset", "col_1", "col_2", "lookup_value"]
     search_fields = ["col_1", "col_2", "lookup_value"]
-    list_filter = ["fk_dataset"]
+    list_filter = ["dataset"]
 
 
 backoffice.register(HelpData, HelpDataBackoffice)
@@ -316,7 +316,7 @@ class DatasetAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
             dataset.name = f"Copy of {dataset.name}"
             dataset.save()
             for column in columns:
-                column.fk_dataset_id = dataset.id
+                column.dataset_id = dataset.id
                 column.id = None
                 column.save()
             counter += 1
@@ -372,7 +372,7 @@ class DatasetBackoffice(
             dataset.name = f"Copy of {dataset.name}"
             dataset.save()
             for column in columns:
-                column.fk_dataset_id = dataset.id
+                column.dataset_id = dataset.id
                 column.id = None
                 column.save()
             counter += 1
@@ -410,17 +410,17 @@ backoffice.register(Dataset, DatasetBackoffice)
 
 @admin.register(Cell)
 class CellAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
-    search_fields = ["fk_column__name"]
-    list_select_related = ["fk_examination", "fk_column"]
-    list_display = ["fk_examination", "fk_column", "value"]
-    raw_id_fields = ["fk_examination"]
+    search_fields = ["column__name"]
+    list_select_related = ["examination", "column"]
+    list_display = ["examination", "column", "value"]
+    raw_id_fields = ["examination"]
 
 
 class CellBackoffice(AdminDynPaginationMixin, BackOfficeAdminMixin, admin.ModelAdmin):
-    search_fields = ["fk_column__name"]
-    list_select_related = ["fk_examination", "fk_column"]
-    list_display = ["fk_examination", "fk_column", "value"]
-    raw_id_fields = ["fk_examination"]
+    search_fields = ["column__name"]
+    list_select_related = ["examination", "column"]
+    list_display = ["examination", "column", "value"]
+    raw_id_fields = ["examination"]
 
 
 backoffice.register(Cell, CellBackoffice)
@@ -440,7 +440,7 @@ class ExaminationBackOfficeForm(forms.ModelForm):
 
 class CellInline(admin.TabularInline):
     model = Cell
-    ordering = [F("fk_column__display_order").asc(nulls_last=True), "fk_column__name"]
+    ordering = [F("column__display_order").asc(nulls_last=True), "column__name"]
 
 
 class ExaminationBackOffice(
@@ -450,23 +450,23 @@ class ExaminationBackOffice(
     admin.ModelAdmin,
 ):
     list_select_related = [
-        "fk_visit",
-        "fk_visit__fk_visit_type",
-        "fk_dataset",
+        "visit",
+        "visit__visit_type",
+        "dataset",
     ]
     list_display = [
-        "fk_visit",
-        "fk_dataset",
+        "visit",
+        "dataset",
         "get_deleted_status",
     ]
     raw_id_fields = [
-        "fk_visit",
-        "fk_dataset",
+        "visit",
+        "dataset",
     ]
     inlines = [
         CellInline,
     ]
-    list_filter = [("fk_visit__fk_proband__copsac_id", ProbandFilter), "fk_dataset"]
+    list_filter = [("visit__proband__copsac_id", ProbandFilter), "dataset"]
 
     form = ExaminationBackOfficeForm
 
@@ -476,9 +476,9 @@ class ExaminationBackOffice(
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         if (
-            hasattr(obj, "fk_dataset")
-            and obj.fk_dataset
-            and not obj.fk_dataset.use_finishdate
+            hasattr(obj, "dataset")
+            and obj.dataset
+            and not obj.dataset.use_finishdate
             and "finishdate" in form.base_fields
         ):
             del form.base_fields["finishdate"]
@@ -503,23 +503,23 @@ class ExaminationAdminForm(forms.ModelForm):
 @admin.register(Examination)
 class ExaminationAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin):
     list_select_related = [
-        "fk_visit",
-        "fk_visit__fk_visit_type",
-        "fk_dataset",
+        "visit",
+        "visit__visit_type",
+        "dataset",
     ]
     list_display = [
-        "fk_visit",
-        "fk_dataset",
+        "visit",
+        "dataset",
         "get_deleted_status",
     ]
     raw_id_fields = [
-        "fk_visit",
-        "fk_dataset",
+        "visit",
+        "dataset",
     ]
     inlines = [
         CellInline,
     ]
-    list_filter = [("fk_visit__fk_proband__copsac_id", ProbandFilter), "fk_dataset"]
+    list_filter = [("visit__proband__copsac_id", ProbandFilter), "dataset"]
 
     form = ExaminationAdminForm
 
@@ -573,16 +573,16 @@ class VisitAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin
         return custom_urls + urls
 
     list_select_related = [
-        "fk_proband",
-        "fk_visit_type",
+        "proband",
+        "visit_type",
     ]
     list_display = [
-        "fk_proband",
-        "fk_visit_type",
+        "proband",
+        "visit_type",
         "visit_date",
         "get_deleted_status",
     ]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
+    list_filter = [("proband__copsac_id", ProbandFilter)]
     inlines = [
         ExaminationInline,
     ]
@@ -602,7 +602,7 @@ class VisitAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin
             return
 
         # Check if all visits belong to the same proband
-        probands = {visit.fk_proband for visit in visits}
+        probands = {visit.proband for visit in visits}
         if len(probands) > 1:
             self.message_user(
                 request,
@@ -642,7 +642,7 @@ class VisitAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin
             return HttpResponseRedirect(reverse("admin:data_visit_changelist"))
 
         # Check if all visits belong to the same proband
-        probands = {visit.fk_proband for visit in visits}
+        probands = {visit.proband for visit in visits}
         if len(probands) > 1:
             self.message_user(
                 request,
@@ -662,8 +662,8 @@ class VisitAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.ModelAdmin
                 # Perform the merge in a transaction
                 with transaction.atomic():
                     # Reassign all examinations from delete_visits to keep_visit
-                    Examination.objects.filter(fk_visit__in=delete_visits).update(
-                        fk_visit=keep_visit,
+                    Examination.objects.filter(visit__in=delete_visits).update(
+                        visit=keep_visit,
                     )
 
                     # Mark delete_visits as deleted
@@ -714,16 +714,16 @@ class VisitBackOffice(
         return custom_urls + urls
 
     list_select_related = [
-        "fk_proband",
-        "fk_visit_type",
+        "proband",
+        "visit_type",
     ]
     list_display = [
-        "fk_proband",
-        "fk_visit_type",
+        "proband",
+        "visit_type",
         "visit_date",
         "get_deleted_status",
     ]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
+    list_filter = [("proband__copsac_id", ProbandFilter)]
     inlines = [
         ExaminationInline,
     ]
@@ -751,8 +751,8 @@ class VisitBackOffice(
                 with transaction.atomic():
                     for visit in source_visits:
                         # Move all examinations from source visit to target visit
-                        Examination.objects.filter(fk_visit=visit).update(
-                            fk_visit=target_visit,
+                        Examination.objects.filter(visit=visit).update(
+                            visit=target_visit,
                         )
                         # Mark source visit as deleted
                         visit.is_deleted = True

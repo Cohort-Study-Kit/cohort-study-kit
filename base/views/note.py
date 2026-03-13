@@ -18,7 +18,7 @@ def save_note(request, copsac_id, note_id):
         proband = Proband.objects.filter(copsac_id=copsac_id).first()
         if not proband:
             raise Http404("Proband does not exist")
-        p_note = Note.objects.create(fk_proband=proband, note=note)
+        p_note = Note.objects.create(proband=proband, note=note)
         status = 201
     else:
         p_note = Note.objects.get(pk=note_id)
@@ -45,7 +45,7 @@ def get_notes(request, copsac_id):
     response = {}
     notes = []
     for note in Note.objects.filter(
-        fk_proband__copsac_id=copsac_id,
+        proband__copsac_id=copsac_id,
         is_deleted=False,
     ).order_by("-date", "-id"):
         notes.append(

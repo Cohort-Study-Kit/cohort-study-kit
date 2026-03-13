@@ -23,10 +23,10 @@ from config.backoffice import backoffice
 
 @admin.register(Relative)
 class RelativeAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
-    list_select_related = ["fk_proband"]
-    list_display = ["fk_proband", "name", "relation_type", "get_deleted_status"]
-    search_fields = ["fk_proband__copsac_id", "firstname", "lastname"]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
+    list_select_related = ["proband"]
+    list_display = ["proband", "name", "relation_type", "get_deleted_status"]
+    search_fields = ["proband__copsac_id", "firstname", "lastname"]
+    list_filter = [("proband__copsac_id", ProbandFilter)]
 
 
 # Backoffice-specific admin classes for models with is_deleted field
@@ -36,10 +36,10 @@ class RelativeBackOffice(
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
 ):
-    list_select_related = ["fk_proband"]
-    list_display = ["fk_proband", "name", "relation_type", "get_deleted_status"]
-    search_fields = ["fk_proband__copsac_id", "firstname", "lastname"]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter)]
+    list_select_related = ["proband"]
+    list_display = ["proband", "name", "relation_type", "get_deleted_status"]
+    search_fields = ["proband__copsac_id", "firstname", "lastname"]
+    list_filter = [("proband__copsac_id", ProbandFilter)]
 
 
 backoffice.register(Relative, RelativeBackOffice)
@@ -47,8 +47,8 @@ backoffice.register(Relative, RelativeBackOffice)
 
 @admin.register(Note)
 class NoteAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
-    list_display = ["fk_proband", "date", "get_deleted_status"]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter), "date"]
+    list_display = ["proband", "date", "get_deleted_status"]
+    list_filter = [("proband__copsac_id", ProbandFilter), "date"]
 
 
 class NoteBackOffice(
@@ -57,8 +57,8 @@ class NoteBackOffice(
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
 ):
-    list_display = ["fk_proband", "date", "get_deleted_status"]
-    list_filter = [("fk_proband__copsac_id", ProbandFilter), "date"]
+    list_display = ["proband", "date", "get_deleted_status"]
+    list_filter = [("proband__copsac_id", ProbandFilter), "date"]
 
 
 backoffice.register(Note, NoteBackOffice)
@@ -83,8 +83,8 @@ class ConsentTypeAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
                 status__in=["active", "resting"],
             ):
                 _consent, created = Consent.objects.get_or_create(
-                    fk_proband=proband,
-                    fk_consent_type=consent_type,
+                    proband=proband,
+                    consent_type=consent_type,
                     defaults={"status": "none"},
                 )
                 if created:
@@ -123,8 +123,8 @@ class ConsentTypeBackoffice(
                 status__in=["active", "resting"],
             ):
                 _consent, created = Consent.objects.get_or_create(
-                    fk_proband=proband,
-                    fk_consent_type=consent_type,
+                    proband=proband,
+                    consent_type=consent_type,
                     defaults={"status": "none"},
                 )
                 if created:
@@ -146,12 +146,12 @@ backoffice.register(ConsentType, ConsentTypeBackoffice)
 
 @admin.register(Consent)
 class ConsentAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, SimpleHistoryAdmin):
-    list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
-    search_fields = ["fk_consent_type__name"]
+    list_display = ["proband", "consent_type", "status", "get_deleted_status"]
+    search_fields = ["consent_type__name"]
     list_filter = [
-        ("fk_proband__copsac_id", ProbandFilter),
+        ("proband__copsac_id", ProbandFilter),
         "status",
-        "fk_consent_type",
+        "consent_type",
     ]
 
 
@@ -161,12 +161,12 @@ class ConsentBackOffice(
     BackOfficeAdminMixin,
     SimpleHistoryAdmin,
 ):
-    list_display = ["fk_proband", "fk_consent_type", "status", "get_deleted_status"]
-    search_fields = ["fk_consent_type__name"]
+    list_display = ["proband", "consent_type", "status", "get_deleted_status"]
+    search_fields = ["consent_type__name"]
     list_filter = [
-        ("fk_proband__copsac_id", ProbandFilter),
+        ("proband__copsac_id", ProbandFilter),
         "status",
-        "fk_consent_type",
+        "consent_type",
     ]
 
 

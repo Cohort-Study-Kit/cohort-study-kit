@@ -26,7 +26,7 @@ class Dataset(models.Model):
     mtm_visit = models.ManyToManyField(
         "data.VisitType",
         through="data.DatasetVisitTypeRel",
-        through_fields=("fk_dataset", "fk_visit_type"),
+        through_fields=("dataset", "visit_type"),
     )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -172,7 +172,7 @@ class Dataset(models.Model):
 class Column(models.Model):
     objects = QuerySet.as_manager()
     # Foreign Keys
-    fk_dataset = models.ForeignKey(
+    dataset = models.ForeignKey(
         "data.Dataset",
         on_delete=models.CASCADE,
         null=True,
@@ -239,7 +239,7 @@ class Column(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["fk_dataset", "name"],
+                fields=["dataset", "name"],
                 name="unique_dataset_column",
             ),
         ]
@@ -249,17 +249,17 @@ class Column(models.Model):
 
 
 class DatasetVisitTypeRel(models.Model):
-    fk_dataset = models.ForeignKey(
+    dataset = models.ForeignKey(
         "data.Dataset",
         null=True,
         on_delete=models.CASCADE,
     )
-    fk_visit_type = models.ForeignKey(
+    visit_type = models.ForeignKey(
         "data.VisitType",
         null=True,
         on_delete=models.CASCADE,
     )
-    fk_helpdoc = models.ForeignKey(
+    helpdoc = models.ForeignKey(
         "data.HelpDoc",
         null=True,
         blank=True,
@@ -274,12 +274,12 @@ class DatasetVisitTypeRel(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["fk_dataset", "fk_visit_type"],
+                fields=["dataset", "visit_type"],
                 name="unique_dataset_visit_type",
             ),
         ]
 
     def __str__(self):
-        return f"{self.fk_visit_type.name} : {self.fk_dataset.name}"
+        return f"{self.visit_type.name} : {self.dataset.name}"
 
     history = HistoricalRecords(table_name="zz_data_datasetvisittyperel")

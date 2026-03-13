@@ -37,13 +37,13 @@ class VisitView(TemplateView, LoginRequiredMixin):
 
         if visit_id > 0:  # Update Visit
             visit = Visit.objects.filter(id=visit_id).first()
-            proband = Proband.objects.get(id=visit.fk_proband_id)
-            fk_visit_type = visit.fk_visit_type
-            fk_secondary_visit_type = visit.fk_secondary_visit_type or ""
+            proband = Proband.objects.get(id=visit.proband_id)
+            visit_type = visit.visit_type
+            secondary_visit_type = visit.secondary_visit_type or ""
             context["copsac_id"] = copsac_id
             context["proband"] = proband
-            context["fk_visit_type"] = fk_visit_type
-            context["fk_secondary_visit_type"] = fk_secondary_visit_type
+            context["visit_type"] = visit_type
+            context["secondary_visit_type"] = secondary_visit_type
             context["visit"] = visit
 
         return TemplateResponse(request, self.template_name, context)
@@ -54,11 +54,11 @@ class VisitView(TemplateView, LoginRequiredMixin):
             # Mayhaps process such instances
             logger.warning(f'Visit date before today: {data["visit_date"]}')
         proband = Proband.objects.filter(copsac_id=copsac_id).first()
-        visit_type = VisitType.objects.get(id=data["fk_visit_type"])
+        visit_type = VisitType.objects.get(id=data["visit_type"])
         secondary_visit_type = None
-        if data["fk_secondary_visit_type"]:
+        if data["secondary_visit_type"]:
             secondary_visit_type = VisitType.objects.get(
-                id=data["fk_secondary_visit_type"],
+                id=data["secondary_visit_type"],
             )
         status = data["status"]
         visit_date = data["visit_date"]
@@ -66,9 +66,9 @@ class VisitView(TemplateView, LoginRequiredMixin):
 
         if visit_id > 0:  # Update Visit
             visit = Visit.objects.get(id=visit_id)
-            proband = visit.fk_proband
-            visit.fk_visit_type = visit_type
-            visit.fk_secondary_visit_type = secondary_visit_type
+            proband = visit.proband
+            visit.visit_type = visit_type
+            visit.secondary_visit_type = secondary_visit_type
             visit.status = data["status"]
             visit_date = datetime.strptime(data["visit_date"], "%Y-%m-%d").date()
             if visit.visit_date != visit_date:
@@ -90,21 +90,21 @@ class VisitView(TemplateView, LoginRequiredMixin):
 
         else:  # Create new Visit
             new_visit = Visit.objects.create(
-                fk_proband=proband,
-                fk_visit_type=visit_type,
-                fk_secondary_visit_type=secondary_visit_type,
+                proband=proband,
+                visit_type=visit_type,
+                secondary_visit_type=secondary_visit_type,
                 status=status,
                 visit_date=visit_date,
                 comments=comments,
             )
             for dataset_id in list(
                 visit_type.datasetvisittyperel_set.all()
-                .values_list("fk_dataset", flat=True)
+                .values_list("dataset", flat=True)
                 .distinct(),
             ):
                 Examination.objects.create(
-                    fk_visit=new_visit,
-                    fk_dataset_id=dataset_id,
+                    visit=new_visit,
+                    dataset_id=dataset_id,
                     startdate=new_visit.visit_date,
                 )
 
@@ -131,16 +131,16 @@ def get_visits(self, copsac_id):
     response["visits"] = [
         (
             v.id,
-            v.fk_visit_type.name,
-            v.fk_secondary_visit_type.name if v.fk_secondary_visit_type else "",
+            v.visit_type.name,
+            v.secondary_visit_type.name if v.secondary_visit_type else "",
             v.get_status_display(),
             v.visit_date,
-            v.fk_visit_type.adhoc,
+            v.visit_type.adhoc,
             v.comments,
         )
         for v in Visit.objects.filter(
-            fk_proband__copsac_id=copsac_id,
+            proband__copsac_id=copsac_id,
             is_deleted=False,
-        ).order_by("fk_visit_type__status", "-visit_date", "fk_visit_type__name")
+        ).order_by("visit_type__status", "-visit_date", "visit_type__name")
     ]
     return JsonResponse(response)

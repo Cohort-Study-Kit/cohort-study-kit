@@ -24,14 +24,14 @@ def get_cells(request, copsac_id, ds_name):
     ):  # No data schema, we use cell data instead
         # There is a data schema. We use data from the Examination.data.
         examination_filter = {
-            "fk_dataset_id": ds.id,
-            "fk_visit__fk_proband__copsac_id": copsac_id,
-            "fk_visit__is_deleted": False,
+            "dataset_id": ds.id,
+            "visit__proband__copsac_id": copsac_id,
+            "visit__is_deleted": False,
             "is_deleted": False,
         }
         field_order = [
-            "-fk_visit__visit_date",
-            "fk_visit__fk_visit_type",
+            "-visit__visit_date",
+            "visit__visit_type",
             "id",
         ]
         examinations = Examination.objects.filter(**examination_filter).order_by(
@@ -52,15 +52,15 @@ def get_cells(request, copsac_id, ds_name):
             record = {
                 "ID": examination.id,
                 "Lock Status": examination.lock_status,
-                "Examination": examination.fk_dataset.name,
-                "Visit id": examination.fk_visit.id,
-                "Visit": examination.fk_visit.fk_visit_type.name,
+                "Examination": examination.dataset.name,
+                "Visit id": examination.visit.id,
+                "Visit": examination.visit.visit_type.name,
                 "Status": examination.get_status_display(),
                 "Start date": examination.startdate,
                 "Comments": examination.comments,
             }
             records.append(record)
-            properties = examination.fk_dataset.data_schema["properties"]
+            properties = examination.dataset.data_schema["properties"]
             for name in properties:
                 # Not all Examinations have data for all data schemas.
                 # We need to check if the data exists before accessing it.
@@ -74,23 +74,23 @@ def get_cells(request, copsac_id, ds_name):
                     headings.append(title)
     else:
         cell_filter = {
-            "fk_examination__fk_dataset_id": ds.id,
-            "fk_examination__fk_visit__fk_proband__copsac_id": copsac_id,
-            "fk_examination__fk_visit__is_deleted": False,
-            "fk_examination__is_deleted": False,
+            "examination__dataset_id": ds.id,
+            "examination__visit__proband__copsac_id": copsac_id,
+            "examination__visit__is_deleted": False,
+            "examination__is_deleted": False,
         }
         field_order = [
-            "-fk_examination__fk_visit__visit_date",
-            "fk_examination__fk_visit__fk_visit_type",
-            "fk_examination__id",
+            "-examination__visit__visit_date",
+            "examination__visit__visit_type",
+            "examination__id",
         ]
         if ds.column_set.filter(display_order__isnull=False).count():
-            cell_filter["fk_column__display_order__isnull"] = False
-            field_order.append("fk_column__display_order")
+            cell_filter["column__display_order__isnull"] = False
+            field_order.append("column__display_order")
         else:
-            field_order.append("fk_column__title")
+            field_order.append("column__title")
         cells = (
-            Cell.objects.select_related("fk_examination")
+            Cell.objects.select_related("examination")
             .filter(**cell_filter)
             .order_by(*field_order)
         )
@@ -110,23 +110,23 @@ def get_cells(request, copsac_id, ds_name):
         # Not all cells with exist for every column, therefore we first need to build
         # a dict and then convert it into a list.
         for cell in cells:
-            if not record or examination_id != cell.fk_examination_id:
-                examination = cell.fk_examination
+            if not record or examination_id != cell.examination_id:
+                examination = cell.examination
                 examination_id = examination.id
                 record = {
                     "ID": examination.id,
                     "Lock Status": examination.lock_status,
-                    "Examination": examination.fk_dataset.name,
-                    "Visit id": examination.fk_visit.id,
-                    "Visit": examination.fk_visit.fk_visit_type.name,
+                    "Examination": examination.dataset.name,
+                    "Visit id": examination.visit.id,
+                    "Visit": examination.visit.visit_type.name,
                     "Status": examination.get_status_display(),
                     "Start date": examination.startdate,
                     "Comments": examination.comments,
                 }
                 records.append(record)
-            record[cell.fk_column.title] = cell.value
-            if cell.fk_column.title not in headings:
-                headings.append(cell.fk_column.title)
+            record[cell.column.title] = cell.value
+            if cell.column.title not in headings:
+                headings.append(cell.column.title)
     # Move comments to end
     headings.remove("Comments")
     headings.append("Comments")

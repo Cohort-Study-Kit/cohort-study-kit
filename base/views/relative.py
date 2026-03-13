@@ -29,9 +29,9 @@ class RelativeView(TemplateView, LoginRequiredMixin):
 
         if rel_id > 0:  # Update relative
             rel_fields = Relative.objects.filter(id=rel_id).values().first()
-            if rel_fields and "fk_proband_id" in rel_fields:
+            if rel_fields and "proband_id" in rel_fields:
                 context["proband"] = Proband.objects.filter(
-                    id=rel_fields["fk_proband_id"],
+                    id=rel_fields["proband_id"],
                 ).first()
             context["relative"] = Relative.objects.filter(id=rel_id).first()
         return TemplateResponse(request, self.template_name, context)
@@ -90,7 +90,7 @@ class RelativeView(TemplateView, LoginRequiredMixin):
         else:  # Create new relative
             proband = Proband.objects.filter(copsac_id=copsac_id).first()
             Relative.objects.create(
-                fk_proband=proband,
+                proband=proband,
                 relation_type=data["relation_type"],
                 deathdate=deathdate,
                 firstname=data["firstname"],
@@ -124,7 +124,7 @@ class RelativeView(TemplateView, LoginRequiredMixin):
 def get_relatives(self, copsac_id):
     response = {}
     relatives_query = (
-        Relative.objects.filter(fk_proband__copsac_id=copsac_id, is_deleted=False)
+        Relative.objects.filter(proband__copsac_id=copsac_id, is_deleted=False)
         .values(
             "id",
             "firstname",

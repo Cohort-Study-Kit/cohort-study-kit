@@ -11,7 +11,7 @@ class Note(models.Model):
     class Meta:
         ordering = ["-date"]
 
-    fk_proband = models.ForeignKey(
+    proband = models.ForeignKey(
         "base.Proband",
         on_delete=models.CASCADE,
     )
@@ -23,6 +23,6 @@ class Note(models.Model):
     )
 
     def __str__(self):
-        return f"{str(self.fk_proband)} {self.date}"
+        return f"{str(self.proband)} {self.date}"
 
     history = HistoricalRecords(table_name="zz_base_probandnote")

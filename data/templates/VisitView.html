@@ -24,11 +24,11 @@
 
       <div class="row mt-4">
         <div class="col-sm-3">
-        <label class="col-form-label" for="fk_visit_type">Visit type:</label>
+        <label class="col-form-label" for="visit_type">Visit type:</label>
         </div>
         <div class="col-sm-6">
-        <select class="form-control form-select" id="fk_visit_type" name="fk_visit_type" requried=true>
-            <option value="{{fk_visit_type.id}}">{{ fk_visit_type }}</option>
+        <select class="form-control form-select" id="visit_type" name="visit_type" requried=true>
+            <option value="{{visit_type.id}}">{{ visit_type }}</option>
             {% for option in visit_type_options %}
               <option value="{{option.id}}">{{ option.name }}</option>
             {% endfor %}
@@ -38,11 +38,11 @@
 
       <div class="row mt-4">
         <div class="col-sm-3">
-        <label class="col-form-label" for="fk_secondary_visit_type">Secondary visit:</label>
+        <label class="col-form-label" for="secondary_visit_type">Secondary visit:</label>
         </div>
         <div class="col-sm-6">
-        <select class="form-control form-select" id="fk_secondary_visit_type" name="fk_secondary_visit_type">
-            <option value="{{fk_secondary_visit_type.id}}">{{ fk_secondary_visit_type }}</option>
+        <select class="form-control form-select" id="secondary_visit_type" name="secondary_visit_type">
+            <option value="{{secondary_visit_type.id}}">{{ secondary_visit_type }}</option>
             {% for option in visit_type_options %}
               <option value="{{option.id}}">{{ option.name }}</option>
             {% endfor %}

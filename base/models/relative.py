@@ -149,7 +149,7 @@ class Relative(models.Model):
         choices=RelativeTypes,
         default=RelativeTypes.UNKNOWN,
     )
-    fk_proband = models.ForeignKey(
+    proband = models.ForeignKey(
         "base.Proband",
         on_delete=models.CASCADE,
         related_name="Proband",
