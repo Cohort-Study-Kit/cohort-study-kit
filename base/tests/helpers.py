@@ -10,14 +10,31 @@ from django.core.servers.basehttp import WSGIRequestHandler
 from django.core.servers.basehttp import WSGIServer
 from django.test.testcases import LiveServerThread
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromiumService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.os_manager import ChromeType
 
 logger = logging.getLogger(__name__)
+
+
+def _add_localhost_stability_flags(options):
+    """Add Chrome flags needed to reliably load localhost pages on Linux.
+
+    Chrome 127+ introduced a stricter Network Service Sandbox that blocks
+    loopback connections, causing pages on localhost/127.0.0.1 to hang
+    indefinitely in the renderer. These flags restore normal behaviour and
+    prevent renderer backgrounding from stalling page loads.
+    """
+    # NetworkServiceSandbox blocks loopback connections in Chrome 127+
+    options.add_argument("--disable-features=NetworkServiceSandbox")
+    # Prevent the renderer from being throttled/backgrounded mid-navigation
+    options.add_argument("--disable-background-timer-throttling")
+    options.add_argument("--disable-backgrounding-occluded-windows")
+    options.add_argument("--disable-renderer-backgrounding")
+    options.add_argument("--disable-hang-monitor")
+    # Wait for DOM ready only, not all subresources — avoids hanging on slow
+    # or blocked resource loads (fonts, images, etc.)
+    options.page_load_strategy = "eager"
 
 
 def find_browser_binary():
@@ -97,7 +114,9 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-software-rasterizer")
-            options.add_argument("--disable-features=VizDisplayCompositor")
+            options.add_argument(
+                "--disable-features=VizDisplayCompositor,NetworkServiceSandbox",
+            )
             options.add_argument("--enable-unsafe-swiftshader")
             # Additional stability flags for CI (avoid --single-process as it crashes in CI)
             options.add_argument("--disable-web-security")
@@ -127,6 +146,7 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
                 options.binary_location = browser_binary
             options.add_argument("--enable-features=UseOzonePlatform")
             options.add_argument("--ozone-platform=wayland")
+            _add_localhost_stability_flags(options)
             cls.wait_time = 10
             cls.sleep_time = 2
             cls.max_retries = 2
@@ -135,16 +155,15 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             browser_binary = find_browser_binary()
             if browser_binary:
                 options.binary_location = browser_binary
+            _add_localhost_stability_flags(options)
             cls.wait_time = 10
             cls.sleep_time = 2
             cls.max_retries = 2
-        # Use ChromeType.GOOGLE for all browsers since Chrome/Chromium/Brave are compatible
-        # The binary_location in options determines which actual browser runs
-        driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
-        cls.driver = webdriver.Chrome(
-            service=ChromiumService(driver_path),
-            options=options,
-        )
+        # Use Selenium Manager (built into Selenium 4.6+) to automatically
+        # download the ChromeDriver version that exactly matches the installed
+        # browser. Passing no `service` argument triggers Selenium Manager.
+        # The binary_location in options determines which actual browser runs.
+        cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(cls.wait_time)
         # Set page load timeout to prevent hanging
         cls.driver.set_page_load_timeout(120)
