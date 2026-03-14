@@ -10,8 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-from .helpers import login_testuser
-from .helpers import VerboseLiveServerTestCase
+from .helpers import VerboseLiveServerTestCase, login_testuser
 
 logger = logging.getLogger(__name__)
 
@@ -1288,7 +1287,7 @@ class InteractionTest(VerboseLiveServerTestCase):
         year_input.click()
         year_input.send_keys("2019")
         turned_off_sun_thu_field = self.driver.find_element(
-            By.NAME,
+            By.ID,
             "question-turned_off_sun_thu",
         )
         turned_off_sun_thu_field.clear()
@@ -1296,12 +1295,12 @@ class InteractionTest(VerboseLiveServerTestCase):
         turned_off_sun_thu_field.send_keys("21:00")
 
         deviceinroom_field = Select(
-            self.driver.find_element(By.NAME, "question-deviceinroom"),
+            self.driver.find_element(By.ID, "question-deviceinroom"),
         )
-        deviceinroom_field.select_by_visible_text("No")
+        deviceinroom_field.select_by_visible_text("0")
 
         gaming_dev_fri_sun_field = Select(
-            self.driver.find_element(By.NAME, "question-gaming_dev_fri_sun"),
+            self.driver.find_element(By.ID, "question-gaming_dev_fri_sun"),
         )
         gaming_dev_fri_sun_field.select_by_visible_text("Max 6")
 
