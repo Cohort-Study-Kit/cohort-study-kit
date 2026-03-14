@@ -3,8 +3,7 @@ from copy import copy
 
 from django import forms
 
-from .models import Column
-from .models import Dataset
+from .models import Column, Dataset
 
 
 class DatasetFormWidget(forms.Widget):

@@ -1,31 +1,21 @@
 import json
 import logging
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
-from django.db.models import TextField
+from django.db.models import Q, TextField
 from django.db.models.functions import Cast
-from django.http import Http404
-from django.http import HttpRequest
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.shortcuts import render
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
-from ..models import Cell
-from ..models import Column
-from ..models import Dataset
-from ..models import Examination
-from ..models import Visit
-from .helpers import can_moderate
 from base.models import Proband
-from healthcare_records.models import Diagnosis
-from healthcare_records.models import Medication
+from healthcare_records.models import Diagnosis, Medication
+
+from ..models import Cell, Column, Dataset, Examination, Visit
+from .helpers import can_moderate
 
 logger = logging.getLogger(__name__)
 

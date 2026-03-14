@@ -1,7 +1,6 @@
 import re
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -10,10 +9,9 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 
+from base.models import Proband, Relative, RelativeTypes
+
 from .helpers import can_moderate
-from base.models import Proband
-from base.models import Relative
-from base.models import RelativeTypes
 
 
 class RelativeView(TemplateView, LoginRequiredMixin):

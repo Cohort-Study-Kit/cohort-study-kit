@@ -2,7 +2,6 @@ from django.db import models
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-
 # Relative related models
 
 

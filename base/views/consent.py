@@ -1,15 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 
-from base.models import Consent
-from base.models import Proband
+from base.models import Consent, Proband
 
 
 def consent_overview(request, copsac_id):

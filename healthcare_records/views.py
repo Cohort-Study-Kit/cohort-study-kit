@@ -1,22 +1,17 @@
 # from django.shortcuts import render
 from django import forms
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
-from django.http import Http404
-from django.http import HttpResponseRedirect
-from django.http import JsonResponse
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
-from .models import ATCCode
-from .models import Diagnosis
-from .models import ICDCode
-from .models import Medication
 from base.models import Proband
 from data.views.helpers import can_moderate
+
+from .models import ATCCode, Diagnosis, ICDCode, Medication
 
 # Related to diagnosis
 

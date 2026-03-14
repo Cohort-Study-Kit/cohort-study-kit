@@ -1,13 +1,7 @@
-from .dataset import Column
-from .dataset import Dataset
-from .dataset import DatasetVisitTypeRel
-from .examination import Cell
-from .examination import Examination
-from .help import HelpData
-from .help import HelpDoc
-from .visit import Visit
-from .visit import VisitType
-
+from .dataset import Column, Dataset, DatasetVisitTypeRel
+from .examination import Cell, Examination
+from .help import HelpData, HelpDoc
+from .visit import Visit, VisitType
 
 __all__ = [
     "Cell",

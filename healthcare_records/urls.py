@@ -1,17 +1,19 @@
 from django.urls import path
 
-from .views import atc_code_search
-from .views import delete_diagnosis
-from .views import delete_medication
-from .views import diagnosis_overview
-from .views import diagnosis_view
-from .views import get_diagnoses
-from .views import get_medications
-from .views import icd_code_search
-from .views import lock_diagnosis
-from .views import lock_medication
-from .views import medication_overview
-from .views import medication_view
+from .views import (
+    atc_code_search,
+    delete_diagnosis,
+    delete_medication,
+    diagnosis_overview,
+    diagnosis_view,
+    get_diagnoses,
+    get_medications,
+    icd_code_search,
+    lock_diagnosis,
+    lock_medication,
+    medication_overview,
+    medication_view,
+)
 
 app_name = "healthcare_records"
 

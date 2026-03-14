@@ -3,9 +3,10 @@ from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
-from .models import User
 from base.admin_pagination import AdminDynPaginationMixin
 from config.backoffice import backoffice
+
+from .models import User
 
 
 @admin.register(User)

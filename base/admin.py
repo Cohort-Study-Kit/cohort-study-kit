@@ -1,24 +1,26 @@
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.utils.translation import ngettext
 from simple_history.admin import SimpleHistoryAdmin
+
+from config.backoffice import backoffice
 
 from .admin_filters import ProbandFilter
 from .admin_mixins import SoftDeleteAdminMixin
 from .admin_pagination import AdminDynPaginationMixin
 from .backoffice_admin_mixins import BackOfficeAdminMixin
-from .models import Address
-from .models import Cohort
-from .models import Consent
-from .models import ConsentType
-from .models import EducationalInstitution
-from .models import EducationalInstitutionStats
-from .models import Note
-from .models import Proband
-from .models import RecruitingCenter
-from .models import Relative
-from .models import Site
-from config.backoffice import backoffice
+from .models import (
+    Address,
+    Cohort,
+    Consent,
+    ConsentType,
+    EducationalInstitution,
+    EducationalInstitutionStats,
+    Note,
+    Proband,
+    RecruitingCenter,
+    Relative,
+    Site,
+)
 
 
 @admin.register(Relative)

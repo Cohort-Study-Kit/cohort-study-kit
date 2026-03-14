@@ -1,9 +1,7 @@
 import logging
-from datetime import date
-from datetime import datetime
+from datetime import date, datetime
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -12,11 +10,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 
-from ..models import Examination
-from ..models import Visit
-from ..models import VisitType
-from .helpers import can_moderate
 from base.models import Proband
+
+from ..models import Examination, Visit, VisitType
+from .helpers import can_moderate
 
 logger = logging.getLogger(__name__)
 

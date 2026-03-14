@@ -3,7 +3,6 @@ from simple_history.models import HistoricalRecords
 
 from .proband import Proband
 
-
 EDUCATIONAL_INSTITUTION_CHOICES = [
     ("nursery", "Nursery"),
     ("daycare", "Daycare"),

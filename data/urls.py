@@ -1,17 +1,16 @@
 from django.urls import path
 
 from .views.cell import get_cells
-from .views.examination import create_examination_form
-from .views.examination import delete_examination
-from .views.examination import examination_form
-from .views.examination import get_examinations
-from .views.examination import get_external_values
-from .views.examination import lock_examination
-from .views.examination import save_examination
-from .views.visit import delete_visit
-from .views.visit import get_visits
-from .views.visit import VisitView
-
+from .views.examination import (
+    create_examination_form,
+    delete_examination,
+    examination_form,
+    get_examinations,
+    get_external_values,
+    lock_examination,
+    save_examination,
+)
+from .views.visit import VisitView, delete_visit, get_visits
 
 app_name = "data"
 

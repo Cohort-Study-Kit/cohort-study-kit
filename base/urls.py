@@ -1,26 +1,18 @@
 from django.urls import path
 
-from .views.address import address_overview
-from .views.address import address_view
-from .views.address import delete_address
-from .views.address import get_addresses
-from .views.consent import consent_overview
-from .views.consent import ConsentView
-from .views.consent import get_consents
-from .views.educational_institution import delete_educational_institution
-from .views.educational_institution import educational_institution_overview
-from .views.educational_institution import educational_institution_view
-from .views.educational_institution import get_educational_institutions
+from .views.address import address_overview, address_view, delete_address, get_addresses
+from .views.consent import ConsentView, consent_overview, get_consents
+from .views.educational_institution import (
+    delete_educational_institution,
+    educational_institution_overview,
+    educational_institution_view,
+    get_educational_institutions,
+)
 from .views.home import home
-from .views.note import get_notes
-from .views.note import save_note
-from .views.proband import get_proband
-from .views.proband import get_probands
-from .views.relative import delete_relative
-from .views.relative import get_relatives
-from .views.relative import RelativeView
-from .views.reminder import get_reminder
-from .views.reminder import save_reminder
+from .views.note import get_notes, save_note
+from .views.proband import get_proband, get_probands
+from .views.relative import RelativeView, delete_relative, get_relatives
+from .views.reminder import get_reminder, save_reminder
 from .views.user import logout_user
 
 app_name = "base"

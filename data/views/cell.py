@@ -1,12 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_GET
 
-from ..models import Cell
-from ..models import Dataset
-from ..models import Examination
 from base.models import Proband
+
+from ..models import Cell, Dataset, Examination
 
 
 @login_required

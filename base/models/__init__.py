@@ -1,16 +1,10 @@
 from .address import Address
-from .consent import Consent
-from .consent import ConsentType
-from .educational_institution import EducationalInstitution
-from .educational_institution import EducationalInstitutionStats
+from .consent import Consent, ConsentType
+from .educational_institution import EducationalInstitution, EducationalInstitutionStats
 from .helpers import current_year
 from .note import Note
-from .proband import Cohort
-from .proband import Proband
-from .proband import RecruitingCenter
-from .proband import Site
-from .relative import Relative
-from .relative import RelativeTypes
+from .proband import Cohort, Proband, RecruitingCenter, Site
+from .relative import Relative, RelativeTypes
 
 __all__ = [
     "Address",

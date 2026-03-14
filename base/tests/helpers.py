@@ -6,8 +6,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.core.servers.basehttp import WSGIRequestHandler
-from django.core.servers.basehttp import WSGIServer
+from django.core.servers.basehttp import WSGIRequestHandler, WSGIServer
 from django.test.testcases import LiveServerThread
 from selenium import webdriver
 from selenium.webdriver.common.by import By

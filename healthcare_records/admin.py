@@ -5,10 +5,7 @@ from base.admin_mixins import SoftDeleteAdminMixin
 from base.admin_pagination import AdminDynPaginationMixin
 from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from config.backoffice import backoffice
-from healthcare_records.models import ATCCode
-from healthcare_records.models import Diagnosis
-from healthcare_records.models import ICDCode
-from healthcare_records.models import Medication
+from healthcare_records.models import ATCCode, Diagnosis, ICDCode, Medication
 
 
 @admin.register(Diagnosis)

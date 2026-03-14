@@ -1,17 +1,14 @@
 from django import forms
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
-from django.http import Http404
-from django.http import HttpResponseRedirect
-from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
-from ..models import EducationalInstitution
-from ..models import Proband
 from data.views.helpers import can_moderate
+
+from ..models import EducationalInstitution, Proband
 
 
 class EducationalInstitutionForm(forms.ModelForm):

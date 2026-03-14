@@ -2,11 +2,9 @@ from inspect import signature
 
 from csvexport.actions import csvexport
 from django import forms
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.db import transaction
-from django.db.models import CharField
-from django.db.models import F
+from django.db.models import CharField, F
 from django.forms import TextInput
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -15,22 +13,25 @@ from django.utils.translation import ngettext
 from django_json_widget.widgets import JSONEditorWidget
 from simple_history.admin import SimpleHistoryAdmin
 
-from .models import Cell
-from .models import Column
-from .models import Dataset
-from .models import DatasetVisitTypeRel
-from .models import Examination
-from .models import HelpData
-from .models import HelpDoc
-from .models import Visit
-from .models import VisitType
-from .widgets import DatasetFormWidget
 from base.admin_filters import ProbandFilter
 from base.admin_mixins import SoftDeleteAdminMixin
 from base.admin_pagination import AdminDynPaginationMixin
 from base.backoffice_admin_mixins import BackOfficeAdminMixin
 from base.models import Proband
 from config.backoffice import backoffice
+
+from .models import (
+    Cell,
+    Column,
+    Dataset,
+    DatasetVisitTypeRel,
+    Examination,
+    HelpData,
+    HelpDoc,
+    Visit,
+    VisitType,
+)
+from .widgets import DatasetFormWidget
 
 csvexport.short_description = "Export as CSV"
 
