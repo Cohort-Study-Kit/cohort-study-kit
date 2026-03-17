@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.forms.widgets import Media
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 
 class SoftDeleteAdminMixin:
@@ -54,8 +54,8 @@ class SoftDeleteAdminMixin:
     )
     def get_deleted_status(self, obj):
         if hasattr(obj, "is_deleted") and obj.is_deleted:
-            return format_html('<span class="deleted-status">Deleted</span>')
-        return format_html('<span class="active-status">Active</span>')
+            return mark_safe('<span class="deleted-status">Deleted</span>')
+        return mark_safe('<span class="active-status">Active</span>')
 
     @admin.action(description="Mark selected items as deleted")
     def mark_as_deleted(self, request, queryset):
