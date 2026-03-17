@@ -490,7 +490,7 @@ const renderJsonSchemaForm = (
         <input type="number" id="question-${he.encode(
           path.replaceAll(" ", "-"),
         )}" value="${
-          value || ""
+          value ?? ""
         }" class="form-control vTextField" data-path="${he.encode(path)}"
         ${"minimum" in schema ? `min="${schema.minimum}"` : ""}
         ${"maximum" in schema ? `max="${schema.maximum}"` : ""}
