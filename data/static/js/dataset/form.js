@@ -33,7 +33,7 @@ export class ExaminationForm {
             if (schema.type === "string") {
               return [key, value || ""]
             }
-            return [key, value || null]
+            return [key, value ?? null]
           },
         ),
       )
