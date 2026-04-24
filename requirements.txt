@@ -1,6 +1,6 @@
 crispy-bootstrap5==2026.3
 Django==6.0.4
-django-allauth==65.15.0
+django-allauth==65.16.1
 django-browser-reload==1.21.0
 django-crispy-forms==2.6
 django-extensions==4.1
@@ -15,8 +15,8 @@ JSON-minify==0.3.0
 mysqlclient==2.2.8
 pre-commit==4.5.1
 python-dotenv==1.2.2
-selenium==4.41.0
+selenium==4.43.0
 webdriver-manager==4.0.2
-nodejs-wheel==24.14.0
+nodejs-wheel==24.15.0
 pip>=25.3
 watchdog==6.0.0
