@@ -211,18 +211,24 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
     single_column_question
         type "string", choices [<db_value>, ...]
         The form is authoritative; col_format is ignored for type/choices.
+        If the element has a "label", it is stored as "title" and takes
+        precedence over the Column.title when building the schema.
 
     input_question (both text_input and textarea)
         type "string"
         Both variants render an unrestricted HTML text field; there is no
         guarantee the stored value is numeric even if col_format says NUMBER.
         col_format is ignored entirely for type.
+        If the element has a "label", it is stored as "title" and takes
+        precedence over the Column.title when building the schema.
 
     multi_column_question options
         type "string"
         Each option-column is a boolean "0"/"1" flag stored as a string.
         An x-multi-column-group annotation is added so that Step 2 can
         merge the individual columns into a single array property.
+        If the element has a "label", it is passed along so Step 2 can use
+        it as the title of the merged array property.
     """
     overrides: dict[str, dict] = {}
     form = dataset.form or {}
@@ -244,17 +250,26 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
                 for opt in (content.get("options") or [])
                 if opt.get("db_value") is not None
             ]
-            overrides[col_name] = {
+            override: dict = {
                 "type": "string",
                 **({"choices": choices} if choices else {}),
             }
+            label = elem.get("label")
+            if label:
+                override["title"] = label
+            overrides[col_name] = override
 
         elif elem_type == "input_question":
             col_name = content.get("column")
             if col_name:
+                col_name = str(col_name)
+                input_override: dict = {"type": "string"}
+                label = elem.get("label")
+                if label:
+                    input_override["title"] = label
                 # setdefault: don't overwrite a single_column_question override
                 # that might already exist for the same column.
-                overrides.setdefault(str(col_name), {"type": "string"})
+                overrides.setdefault(col_name, input_override)
 
         elif elem_type == "multi_column_question":
             group_text = content.get("text") or ""
@@ -430,10 +445,12 @@ def migrate_form_in_memory(
             report["converted_single"] += 1
 
         elif elem_type == "multi_column_question":
+            elem_label = element.get("label") or ""
             merged_name, removed_keys = _merge_multi_column_group(
                 content,
                 schema_properties,
                 exam_data_list,
+                elem_label,
             )
             element["content"] = {"type": "data_question", "property": merged_name}
             report["converted_multi"] += 1
@@ -454,11 +471,15 @@ def _merge_multi_column_group(
     content: dict,
     schema_properties: dict,
     exam_data_list: list[dict],
+    elem_label: str = "",
 ) -> tuple[str, list[str]]:
     """
     Merge one multi_column_question group.
 
     Mutates schema_properties and each dict in exam_data_list in-place.
+
+    elem_label is the "label" from the form element; when present it takes
+    precedence over content["text"] as the title of the merged property.
 
     Returns:
         merged_name   — the new array property name (empty string on failure)
@@ -487,10 +508,12 @@ def _merge_multi_column_group(
     merged_name = candidate
 
     # Add the merged array property to the schema.
+    # elem_label (from the form element's "label" field) takes precedence over
+    # group_text (from the element's content "text" field).
     choices = [display_text for _, display_text in option_pairs]
     schema_properties[merged_name] = {
         "type": "array",
-        "title": group_text or merged_name,
+        "title": elem_label or group_text or merged_name,
         "items": {"type": "string"},
         "choices": choices,
     }
