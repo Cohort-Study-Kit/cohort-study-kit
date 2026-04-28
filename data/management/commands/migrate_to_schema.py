@@ -324,8 +324,11 @@ def build_data_schema(dataset: Dataset) -> dict:
             if prop.get("format") and prop.get("type") != "string":
                 del prop["format"]
 
-        if col.description:
-            prop["description"] = col.description
+        description = col.description or ""
+        if description == "There is no description of this field.":
+            description = ""
+        if description:
+            prop["description"] = description
 
         properties[col.name] = prop
 
@@ -404,6 +407,12 @@ def migrate_form_in_memory(
 
     All three arguments are mutated in-place.
 
+    Display properties from the old content are preserved in the new
+    data_question content object:
+        input_question        — width, tabindex, placement, placeholder, caption
+        single_column_question — width, tabindex, placement, caption
+        multi_column_question  — tabindex, options_orientation
+
     Returns a report dict:
         converted_input        int
         converted_single       int
@@ -436,12 +445,20 @@ def migrate_form_in_memory(
                 and col_name in schema_properties
             ):
                 schema_properties[col_name].setdefault("widget", "textarea")
-            element["content"] = {"type": "data_question", "property": col_name}
+            new_content: dict = {"type": "data_question", "property": col_name}
+            for key in ("width", "tabindex", "placement", "placeholder", "caption"):
+                if key in content:
+                    new_content[key] = content[key]
+            element["content"] = new_content
             report["converted_input"] += 1
 
         elif elem_type == "single_column_question":
             col_name = str(content.get("column") or "")
-            element["content"] = {"type": "data_question", "property": col_name}
+            new_content = {"type": "data_question", "property": col_name}
+            for key in ("width", "tabindex", "placement", "caption"):
+                if key in content:
+                    new_content[key] = content[key]
+            element["content"] = new_content
             report["converted_single"] += 1
 
         elif elem_type == "multi_column_question":
@@ -452,7 +469,11 @@ def migrate_form_in_memory(
                 exam_data_list,
                 elem_label,
             )
-            element["content"] = {"type": "data_question", "property": merged_name}
+            new_content = {"type": "data_question", "property": merged_name}
+            for key in ("tabindex", "options_orientation"):
+                if key in content:
+                    new_content[key] = content[key]
+            element["content"] = new_content
             report["converted_multi"] += 1
             if merged_name:
                 report["merged_property_names"].append(merged_name)

@@ -192,6 +192,28 @@ export class ExaminationForm {
     const column = event.target.dataset.column
     const path = event.target.dataset.path?.trim()
 
+    const choice = event.target.dataset.choice
+    if (choice !== undefined && path) {
+      // Array+choices checkbox: toggle choice in/out of the array property
+      if (!Array.isArray(this.examination.data[path])) {
+        this.examination.data[path] = []
+      }
+      if (event.target.checked) {
+        if (!this.examination.data[path].includes(choice)) {
+          this.examination.data[path].push(choice)
+        }
+      } else {
+        const idx = this.examination.data[path].indexOf(choice)
+        if (idx !== -1) {
+          this.examination.data[path].splice(idx, 1)
+        }
+      }
+      event.preventDefault()
+      this.render()
+      this.handlingChange = false
+      return
+    }
+
     if (column) {
       // If the target is a checkbox, return 1 if it is checked, 0 otherwise
       // If the target is not a checkbox, return the value

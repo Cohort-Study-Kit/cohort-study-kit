@@ -23,6 +23,12 @@ export const DEFAULT_CONTENT = {
   },
   data_question: {
     property: false,
+    placement: "right_of",
+    width: 0,
+    tabindex: 0,
+    placeholder: "",
+    caption: "",
+    options_orientation: "horizontal",
   },
   single_column_question: {
     text: "",

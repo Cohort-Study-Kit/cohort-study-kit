@@ -405,6 +405,7 @@ const renderJsonSchemaForm = (
   value, // value of the property
   schema,
   required = false,
+  displayOptions = {}, // stylistic hints from the form element (width, tabindex, placeholder, caption, options_orientation)
 ) => {
   let returnString = ""
   switch (schema.type) {
@@ -424,42 +425,86 @@ const renderJsonSchemaForm = (
       returnString += `</div>`
       break
     case "array":
-      returnString += `<div class="json-schema-array">`
-      if (value) {
-        value.forEach((item, index) => {
-          returnString += `<div class="border border-secondary mb-1 json-schema-array-item">
-            ${renderJsonSchemaForm(
-              `${path} ${index}`,
-              `${name}-${index}`,
-              item,
-              schema.items,
-            )}
-            <button class="btn btn-danger btn-sm m-1 json-schema-array-remove-item" data-path="${he.encode(
-              path,
-            )} ${index}">Remove ${he.encode(schema.title || name)}</button>
+      if (schema.choices) {
+        // Render a checkbox group for array properties with a fixed choices list
+        // (produced by merged multi_column_question groups).
+        returnString += `<label class="form-label ${required ? "requiredField" : ""}"${
+          displayOptions.caption
+            ? ` title="${he.encode(displayOptions.caption)}"`
+            : ""
+        }>
+          ${he.encode(schema.title || name)}${required ? ` <span class="asteriskField">*</span>` : ""}
+        </label>
+        <div class="json-schema-choices">`
+        schema.choices.forEach((choice) => {
+          const checked = Array.isArray(value) && value.includes(choice)
+          returnString += `<div class="form-check${
+            displayOptions.options_orientation === "horizontal"
+              ? " form-check-inline"
+              : ""
+          }">
+            <label class="form-check-label">
+              <input class="form-check-input"
+                type="checkbox"
+                data-path="${he.encode(path)}"
+                data-choice="${he.encode(choice)}"
+                ${displayOptions.tabindex > 0 ? `tabindex="${displayOptions.tabindex + 3}"` : ""}
+                ${checked ? "checked" : ""}>
+              ${he.encode(choice)}
+            </label>
           </div>`
         })
+        returnString += `</div>`
+      } else {
+        returnString += `<div class="json-schema-array">`
+        if (value) {
+          value.forEach((item, index) => {
+            returnString += `<div class="border border-secondary mb-1 json-schema-array-item">
+              ${renderJsonSchemaForm(
+                `${path} ${index}`,
+                `${name}-${index}`,
+                item,
+                schema.items,
+              )}
+              <button class="btn btn-danger btn-sm m-1 json-schema-array-remove-item" data-path="${he.encode(
+                path,
+              )} ${index}">Remove ${he.encode(schema.title || name)}</button>
+            </div>`
+          })
+        }
+        returnString += `<button class="btn btn-primary btn-sm json-schema-array-add-item" data-path="${he.encode(
+          path,
+        )}" data-type="${he.encode(schema.items.type)}">Add ${he.encode(
+          schema.title || name,
+        )}</button>`
+        returnString += `</div>`
       }
-      returnString += `<button class="btn btn-primary btn-sm json-schema-array-add-item" data-path="${he.encode(
-        path,
-      )}" data-type="${he.encode(schema.items.type)}">Add ${he.encode(
-        schema.title || name,
-      )}</button>`
-      returnString += `</div>`
       break
     case "string":
       returnString += `<label for="question-${he.encode(
         path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}">
+      )}" class="form-label ${required ? "requiredField" : ""}"${
+        displayOptions.caption
+          ? ` title="${he.encode(displayOptions.caption)}"`
+          : ""
+      }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
         </label>
         ${
           schema.choices
-            ? `<div class="col-auto"><select class="select form-select form-control" data-path="${he.encode(
+            ? `<div class="col-auto"${
+                displayOptions.width > 0
+                  ? ` style="width: ${displayOptions.width}px;"`
+                  : ""
+              }><select class="select form-select form-control" data-path="${he.encode(
                 path,
-              )}" id="question-${he.encode(path.replaceAll(" ", "-"))}">
+              )}" id="question-${he.encode(path.replaceAll(" ", "-"))}"${
+                displayOptions.tabindex > 0
+                  ? ` tabindex="${displayOptions.tabindex + 3}"`
+                  : ""
+              }>
             <option value="">---------</option>
             ${schema.choices.map(
               (choice) =>
@@ -468,25 +513,45 @@ const renderJsonSchemaForm = (
                 }>${he.encode(choice)}</option>`,
             )}
           </select></div>`
-            : `<div class="col-auto"><input type="text" id="question-${he.encode(
+            : `<div class="col-auto"${
+                displayOptions.width > 0
+                  ? ` style="width: ${displayOptions.width}px;"`
+                  : ""
+              }><input type="text" id="question-${he.encode(
                 path.replaceAll(" ", "-"),
               )}" value="${he.encode(
                 value || "",
               )}" class="form-control vTextField form-control" data-path="${he.encode(
                 path,
-              )}"></div>`
+              )}"${
+                displayOptions.tabindex > 0
+                  ? ` tabindex="${displayOptions.tabindex + 3}"`
+                  : ""
+              }${
+                displayOptions.placeholder
+                  ? ` placeholder="${he.encode(displayOptions.placeholder)}"`
+                  : ""
+              }></div>`
         }`
       break
     case "number":
     case "integer":
       returnString += `<label for="question-${he.encode(
         path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}">
+      )}" class="form-label ${required ? "requiredField" : ""}"${
+        displayOptions.caption
+          ? ` title="${he.encode(displayOptions.caption)}"`
+          : ""
+      }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
       </label>
-      <div class="col-auto">
+      <div class="col-auto"${
+        displayOptions.width > 0
+          ? ` style="width: ${displayOptions.width}px;"`
+          : ""
+      }>
         <input type="number" id="question-${he.encode(
           path.replaceAll(" ", "-"),
         )}" value="${
@@ -499,20 +564,29 @@ const renderJsonSchemaForm = (
             ? `step="${schema.multipleOf}"`
             : `step="${schema.type === "number" ? "0.001" : "1"}"`
         }
+        ${displayOptions.tabindex > 0 ? `tabindex="${displayOptions.tabindex + 3}"` : ""}
         >
       </div>`
       break
     case "boolean":
       returnString += `<label for="question-${he.encode(
         path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}">
+      )}" class="form-label ${required ? "requiredField" : ""}"${
+        displayOptions.caption
+          ? ` title="${he.encode(displayOptions.caption)}"`
+          : ""
+      }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
       </label>
       <div class="col-auto"><input type="checkbox" class="form-check-input" id="question-${he.encode(
         path.replaceAll(" ", "-"),
-      )}" ${value ? "checked" : ""} data-path="${he.encode(path)}"></div>`
+      )}" ${value ? "checked" : ""} data-path="${he.encode(path)}"${
+        displayOptions.tabindex > 0
+          ? ` tabindex="${displayOptions.tabindex + 3}"`
+          : ""
+      }></div>`
       break
     default:
       returnString += ""
@@ -623,14 +697,24 @@ const renderContentObject = (
           warning.variables.includes(contentObject.property),
         )
       }
+      const placement = contentObject.placement || "right_of"
+      const displayOptions = {
+        width: contentObject.width || 0,
+        tabindex: contentObject.tabindex || 0,
+        placeholder: contentObject.placeholder || "",
+        caption: contentObject.caption || "",
+        options_orientation: contentObject.options_orientation || "horizontal",
+      }
       returnString = `<div class="p-2 h-100${
         warning ? " warning" : ""
-      } overflow-auto d-flex justify-content-between">
+      } overflow-auto${placement === "right_of" ? " d-flex justify-content-between" : ""}">
             ${renderJsonSchemaForm(
               contentObject.property,
               contentObject.property,
               value,
               renderOptions.data_schema.properties[contentObject.property],
+              false,
+              displayOptions,
             )}
         </div>`
       break
@@ -1221,6 +1305,8 @@ const elementPropertiesFormTemplate = (element, value, options) => {
       break
     }
     case "data_question": {
+      const schemaProp =
+        (options.data_schema.properties || {})[element.content.property] || {}
       returnString += `<div class="mb-3">
           <label class="form-label requiredField"> Property <span class="asteriskField">*</span>
             <select name="property" class="select form-select">
@@ -1234,7 +1320,70 @@ const elementPropertiesFormTemplate = (element, value, options) => {
                 .join("")}
             </select>
           </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"> Placement
+            <select name="placement" class="select form-select">
+              <option value="right_of" ${
+                element.content.placement !== "below" ? "selected" : ""
+              }>Right of label</option>
+              <option value="below" ${
+                element.content.placement === "below" ? "selected" : ""
+              }>Below label</option>
+            </select>
+          </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            Width
+            <input type="number" name="width" value="${
+              element.content.width || 0
+            }" class="width vTextField" title="Pixel width of the input widget. 0 = automatic sizing.">
+          </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            Tabindex
+            <input type="number" name="tabindex" value="${
+              element.content.tabindex || 0
+            }" class="tabindex vTextField">
+          </label>
+        </div>
+        ${
+          schemaProp.type === "array"
+            ? `<div class="mb-3">
+          <label class="form-label"> Options orientation
+            <select name="options_orientation" class="select form-select">
+              <option value="horizontal" ${
+                element.content.options_orientation !== "vertical"
+                  ? "selected"
+                  : ""
+              }>Horizontal</option>
+              <option value="vertical" ${
+                element.content.options_orientation === "vertical"
+                  ? "selected"
+                  : ""
+              }>Vertical</option>
+            </select>
+          </label>
         </div>`
+            : `<div class="mb-3">
+          <label class="form-label">
+            Placeholder
+            <input type="text" name="placeholder" value="${he.encode(
+              element.content.placeholder || "",
+            )}" class="placeholder vTextField">
+          </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">
+            Caption
+            <input type="text" name="caption" value="${he.encode(
+              element.content.caption || "",
+            )}" class="caption vTextField">
+          </label>
+        </div>`
+        }`
       break
     }
     case "single_column_question": {
