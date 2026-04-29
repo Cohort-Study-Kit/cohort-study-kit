@@ -28,6 +28,7 @@ export const DEFAULT_CONTENT = {
     tabindex: 0,
     placeholder: "",
     caption: "",
+    hide_text: false,
     options_orientation: "horizontal",
   },
   single_column_question: {

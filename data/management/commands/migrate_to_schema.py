@@ -446,7 +446,14 @@ def migrate_form_in_memory(
             ):
                 schema_properties[col_name].setdefault("widget", "textarea")
             new_content: dict = {"type": "data_question", "property": col_name}
-            for key in ("width", "tabindex", "placement", "placeholder", "caption"):
+            for key in (
+                "width",
+                "tabindex",
+                "placement",
+                "placeholder",
+                "caption",
+                "hide_text",
+            ):
                 if key in content:
                     new_content[key] = content[key]
             element["content"] = new_content
@@ -455,7 +462,7 @@ def migrate_form_in_memory(
         elif elem_type == "single_column_question":
             col_name = str(content.get("column") or "")
             new_content = {"type": "data_question", "property": col_name}
-            for key in ("width", "tabindex", "placement", "caption"):
+            for key in ("width", "tabindex", "placement", "caption", "hide_text"):
                 if key in content:
                     new_content[key] = content[key]
             element["content"] = new_content
@@ -470,7 +477,7 @@ def migrate_form_in_memory(
                 elem_label,
             )
             new_content = {"type": "data_question", "property": merged_name}
-            for key in ("tabindex", "options_orientation"):
+            for key in ("tabindex", "options_orientation", "hide_text"):
                 if key in content:
                     new_content[key] = content[key]
             element["content"] = new_content

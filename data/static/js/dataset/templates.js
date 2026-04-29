@@ -405,7 +405,7 @@ const renderJsonSchemaForm = (
   value, // value of the property
   schema,
   required = false,
-  displayOptions = {}, // stylistic hints from the form element (width, tabindex, placeholder, caption, options_orientation)
+  displayOptions = {}, // stylistic hints from the form element (width, tabindex, placeholder, caption, hide_text, options_orientation)
 ) => {
   let returnString = ""
   switch (schema.type) {
@@ -428,13 +428,17 @@ const renderJsonSchemaForm = (
       if (schema.choices) {
         // Render a checkbox group for array properties with a fixed choices list
         // (produced by merged multi_column_question groups).
-        returnString += `<label class="form-label ${required ? "requiredField" : ""}"${
-          displayOptions.caption
-            ? ` title="${he.encode(displayOptions.caption)}"`
-            : ""
-        }>
+        returnString += `${
+          displayOptions.hide_text
+            ? ""
+            : `<label class="form-label ${required ? "requiredField" : ""}"${
+                displayOptions.caption
+                  ? ` title="${he.encode(displayOptions.caption)}"`
+                  : ""
+              }>
           ${he.encode(schema.title || name)}${required ? ` <span class="asteriskField">*</span>` : ""}
-        </label>
+        </label>`
+        }
         <div class="json-schema-choices">`
         schema.choices.forEach((choice) => {
           const checked = Array.isArray(value) && value.includes(choice)
@@ -481,17 +485,21 @@ const renderJsonSchemaForm = (
       }
       break
     case "string":
-      returnString += `<label for="question-${he.encode(
-        path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}"${
-        displayOptions.caption
-          ? ` title="${he.encode(displayOptions.caption)}"`
-          : ""
-      }>
+      returnString += `${
+        displayOptions.hide_text
+          ? ""
+          : `<label for="question-${he.encode(
+              path.replaceAll(" ", "-"),
+            )}" class="form-label ${required ? "requiredField" : ""}"${
+              displayOptions.caption
+                ? ` title="${he.encode(displayOptions.caption)}"`
+                : ""
+            }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
-        </label>
+        </label>`
+      }
         ${
           schema.choices
             ? `<div class="col-auto"${
@@ -536,17 +544,21 @@ const renderJsonSchemaForm = (
       break
     case "number":
     case "integer":
-      returnString += `<label for="question-${he.encode(
-        path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}"${
-        displayOptions.caption
-          ? ` title="${he.encode(displayOptions.caption)}"`
-          : ""
-      }>
+      returnString += `${
+        displayOptions.hide_text
+          ? ""
+          : `<label for="question-${he.encode(
+              path.replaceAll(" ", "-"),
+            )}" class="form-label ${required ? "requiredField" : ""}"${
+              displayOptions.caption
+                ? ` title="${he.encode(displayOptions.caption)}"`
+                : ""
+            }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
-      </label>
+      </label>`
+      }
       <div class="col-auto"${
         displayOptions.width > 0
           ? ` style="width: ${displayOptions.width}px;"`
@@ -569,17 +581,21 @@ const renderJsonSchemaForm = (
       </div>`
       break
     case "boolean":
-      returnString += `<label for="question-${he.encode(
-        path.replaceAll(" ", "-"),
-      )}" class="form-label ${required ? "requiredField" : ""}"${
-        displayOptions.caption
-          ? ` title="${he.encode(displayOptions.caption)}"`
-          : ""
-      }>
+      returnString += `${
+        displayOptions.hide_text
+          ? ""
+          : `<label for="question-${he.encode(
+              path.replaceAll(" ", "-"),
+            )}" class="form-label ${required ? "requiredField" : ""}"${
+              displayOptions.caption
+                ? ` title="${he.encode(displayOptions.caption)}"`
+                : ""
+            }>
         ${he.encode(schema.title || name)} ${
           required ? `<span class="asteriskField">*</span>` : ""
         }
-      </label>
+      </label>`
+      }
       <div class="col-auto"><input type="checkbox" class="form-check-input" id="question-${he.encode(
         path.replaceAll(" ", "-"),
       )}" ${value ? "checked" : ""} data-path="${he.encode(path)}"${
@@ -703,11 +719,12 @@ const renderContentObject = (
         tabindex: contentObject.tabindex || 0,
         placeholder: contentObject.placeholder || "",
         caption: contentObject.caption || "",
+        hide_text: contentObject.hide_text || false,
         options_orientation: contentObject.options_orientation || "horizontal",
       }
       returnString = `<div class="p-2 h-100${
         warning ? " warning" : ""
-      } overflow-auto${placement === "right_of" ? " d-flex justify-content-between" : ""}">
+      } ${placement === "right_of" ? " d-flex justify-content-between" : ""}">
             ${renderJsonSchemaForm(
               contentObject.property,
               contentObject.property,
@@ -1347,6 +1364,14 @@ const elementPropertiesFormTemplate = (element, value, options) => {
             <input type="number" name="tabindex" value="${
               element.content.tabindex || 0
             }" class="tabindex vTextField">
+          </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-check-label">
+            <input type="checkbox" name="hide_text" class="hide_text checkboxinput" ${
+              element.content.hide_text ? "checked" : ""
+            }>
+            Hide label
           </label>
         </div>
         ${
