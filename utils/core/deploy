@@ -68,6 +68,28 @@ subprocess.call(
 )
 
 
+sys.stdout.write("\n----- Verify local fonts for GDPR compliance -----")
+# Verify open source font files exist (they should be in the repo)
+# Roboto (Apache 2.0) and Entypo (OFL) are open source and committed to the repo
+font_check = subprocess.call(
+    [
+        "sudo",
+        "-u",
+        "web",
+        "--",
+        "bash",
+        "-c",
+        "test -f config/static-lib/lib/fonts/roboto/Roboto-Regular.ttf && "
+        "test -f config/static-lib/lib/fonts/entypo/entypo.ttf && "
+        "echo 'Font files verified.' || "
+        "{ echo 'ERROR: Font files missing! They should be in the repo (open source licenses).'; exit 1; }",
+    ],
+)
+if font_check != 0:
+    sys.stdout.write("Aborting deployment.\n")
+    sys.exit(1)
+
+
 sys.stdout.write("\n----- Transpile -----")
 subprocess.call(
     [

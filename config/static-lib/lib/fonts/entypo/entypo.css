@@ -1,0 +1,31 @@
+/* Entypo icon font - locally hosted for GDPR compliance */
+/* Original source: http://weloveiconfonts.com/api/?family=entypo */
+/* Font files should be placed in the same directory: entypo.woff2, entypo.woff, entypo.ttf */
+
+@font-face {
+  font-family: 'entypo';
+  src: url('entypo.woff2') format('woff2'),
+       url('entypo.woff') format('woff'),
+       url('entypo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base icon styles */
+[class*="entypo-"]:before {
+  font-family: 'entypo', sans-serif;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Note: To use specific Entypo icons, add the corresponding content values.
+   Example: .entypo-user:before { content: '\e700'; }
+   You will need to add the specific icon mappings based on the Entypo font version you host.
+   Common Entypo icons can be found at: https://entypo.com/ */

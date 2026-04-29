@@ -1,5 +1,5 @@
-@import url(http://weloveiconfonts.com/api/?family=entypo);
-@import url(https://fonts.googleapis.com/css?family=Roboto);
+@import url(../lib/fonts/entypo/entypo.css);
+@import url(../lib/fonts/roboto/roboto.css);
 
 /* zocial */
 [class*="entypo-"]:before {
