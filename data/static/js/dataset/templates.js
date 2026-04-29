@@ -514,12 +514,15 @@ const renderJsonSchemaForm = (
                   : ""
               }>
             <option value=""></option>
-            ${schema.choices.map(
-              (choice) =>
-                `<option value="${he.encode(choice)}" ${
-                  value === choice ? "selected" : ""
-                }>${he.encode(choice)}</option>`,
-            )}
+            ${schema.choices.map((choice) => {
+              const label = Array.isArray(choice)
+                ? String(choice[0])
+                : String(choice)
+              const val = Array.isArray(choice) ? choice[1] : choice
+              return `<option value="${he.encode(String(val))}" ${
+                String(value) === String(val) ? "selected" : ""
+              }>${he.encode(label)}</option>`
+            })}
           </select></div>`
             : `<div class="col-auto"${
                 displayOptions.width > 0
@@ -906,8 +909,28 @@ const renderContentObject = (
     case "show_value": {
       let value = ""
       if (maindataVisit) {
+        // Build a label-resolved copy of data for display purposes.
+        // Raw data is kept intact for condition evaluation elsewhere;
+        // only show_value uses the resolved copy so the user sees
+        // "Næstved" instead of "Nestved", "Yes" instead of "1", etc.
+        const displayData = Object.fromEntries(
+          Object.entries(maindataVisit.data).map(([key, val]) => {
+            const schemaProp = renderOptions.data_schema?.properties?.[key]
+            const choices = schemaProp?.choices
+            if (!choices || Array.isArray(val)) return [key, val]
+            const strVal = String(val)
+            for (const choice of choices) {
+              if (Array.isArray(choice) && choice.length === 2) {
+                if (String(choice[1]) === strVal) return [key, choice[0]]
+              } else if (String(choice) === strVal) {
+                return [key, choice]
+              }
+            }
+            return [key, val]
+          }),
+        )
         value = evaluateCode(
-          maindataVisit.data,
+          displayData,
           maindataVisit.column_data,
           renderOptions.externalValues,
           contentObject.variables,

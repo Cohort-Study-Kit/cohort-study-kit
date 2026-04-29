@@ -245,11 +245,16 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
             if not col_name:
                 continue
             col_name = str(col_name)
-            choices = [
-                opt["db_value"]
-                for opt in (content.get("options") or [])
-                if opt.get("db_value") is not None
-            ]
+            choices = []
+            for opt in content.get("options") or []:
+                if opt.get("db_value") is None:
+                    continue
+                text = str(opt.get("text", ""))
+                db_value = opt["db_value"]
+                if text != str(db_value):
+                    choices.append([text, db_value])
+                else:
+                    choices.append(db_value)
             override: dict = {
                 "type": "string",
                 **({"choices": choices} if choices else {}),

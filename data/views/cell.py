@@ -7,6 +7,30 @@ from base.models import Proband
 from ..models import Cell, Dataset, Examination
 
 
+def _resolve_display_value(value, choices):
+    """
+    Resolve a stored value to its display label using a schema choices list.
+
+    Each entry in choices is either:
+      - a plain string/value  → the label and stored value are identical
+      - a [label, stored_value] two-element list → label differs from stored value
+
+    Returns the original value unchanged if no matching choice is found or if
+    the value is not a scalar (e.g. a list from an array property).
+    """
+    if not choices or not isinstance(value, (str, int, float)):
+        return value
+    str_value = str(value)
+    for choice in choices:
+        if isinstance(choice, list) and len(choice) == 2:
+            label, stored = choice
+            if str(stored) == str_value:
+                return label
+        elif str(choice) == str_value:
+            return choice
+    return value
+
+
 @login_required
 @require_GET
 def get_cells(request, copsac_id, ds_name):
@@ -67,6 +91,9 @@ def get_cells(request, copsac_id, ds_name):
                     continue
                 definition = properties[name]
                 title = definition["title"]
+                choices = definition.get("choices")
+                if choices:
+                    value = _resolve_display_value(value, choices)
                 record[title] = value
                 if title not in headings:
                     headings.append(title)
