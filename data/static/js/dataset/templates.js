@@ -502,28 +502,76 @@ const renderJsonSchemaForm = (
       }
         ${
           schema.choices
-            ? `<div class="col-auto"${
-                displayOptions.width > 0
-                  ? ` style="width: ${displayOptions.width}px;"`
-                  : ""
-              }><select class="select form-select form-control" data-path="${he.encode(
-                path,
-              )}" id="question-${he.encode(path.replaceAll(" ", "-"))}"${
-                displayOptions.tabindex > 0
-                  ? ` tabindex="${displayOptions.tabindex + 3}"`
-                  : ""
-              }>
-            <option value=""></option>
-            ${schema.choices.map((choice) => {
-              const label = Array.isArray(choice)
-                ? String(choice[0])
-                : String(choice)
-              const val = Array.isArray(choice) ? choice[1] : choice
-              return `<option value="${he.encode(String(val))}" ${
-                String(value) === String(val) ? "selected" : ""
-              }>${he.encode(label)}</option>`
-            })}
-          </select></div>`
+            ? (() => {
+                const isRadio =
+                  (displayOptions.input_type || schema.input_type) ===
+                  "radio-buttons"
+                if (isRadio) {
+                  // Radio buttons: render a radio group with an empty first option.
+                  // The empty option is preselected when no other value is set.
+                  const radioName = he.encode(path.replaceAll(" ", "-"))
+                  return `<div class="col-auto">${
+                    displayOptions.width > 0
+                      ? `<div style="width: ${displayOptions.width}px;">`
+                      : ""
+                  }${schema.choices
+                    .map((choice) => {
+                      const label = Array.isArray(choice)
+                        ? String(choice[0])
+                        : String(choice)
+                      const val = Array.isArray(choice) ? choice[1] : choice
+                      const checked =
+                        value != null && String(value) === String(val)
+                      return `<div class="form-check${
+                        displayOptions.options_orientation === "horizontal"
+                          ? " form-check-inline"
+                          : ""
+                      }">
+                      <input class="form-check-input" type="radio"
+                        name="${radioName}" value="${he.encode(String(val))}"
+                        data-path="${he.encode(path)}"
+                        ${displayOptions.tabindex > 0 ? `tabindex="${displayOptions.tabindex + 3}"` : ""}
+                        ${checked ? "checked" : ""}>
+                      <label class="form-check-label">${he.encode(label)}</label>
+                    </div>`
+                    })
+                    .join("")}<div class="form-check${
+                    displayOptions.options_orientation === "horizontal"
+                      ? " form-check-inline"
+                      : ""
+                  }">
+                    <input class="form-check-input" type="radio"
+                      name="${radioName}" value=""
+                      data-path="${he.encode(path)}"
+                      ${displayOptions.tabindex > 0 ? `tabindex="${displayOptions.tabindex + 3}"` : ""}
+                      ${!value || String(value) === "" ? "checked" : ""}>
+                    <label class="form-check-label">---</label>
+                  </div></div>`
+                }
+                // Default: dropdown select with empty first option
+                return `<div class="col-auto"${
+                  displayOptions.width > 0
+                    ? ` style="width: ${displayOptions.width}px;"`
+                    : ""
+                }><select class="select form-select form-control" data-path="${he.encode(
+                  path,
+                )}" id="question-${he.encode(path.replaceAll(" ", "-"))}"${
+                  displayOptions.tabindex > 0
+                    ? ` tabindex="${displayOptions.tabindex + 3}"`
+                    : ""
+                }>
+                <option value=""></option>
+                ${schema.choices.map((choice) => {
+                  const label = Array.isArray(choice)
+                    ? String(choice[0])
+                    : String(choice)
+                  const val = Array.isArray(choice) ? choice[1] : choice
+                  return `<option value="${he.encode(String(val))}" ${
+                    String(value) === String(val) ? "selected" : ""
+                  }>${he.encode(label)}</option>`
+                })}
+              </select></div>`
+              })()
             : `<div class="col-auto"${
                 displayOptions.width > 0
                   ? ` style="width: ${displayOptions.width}px;"`

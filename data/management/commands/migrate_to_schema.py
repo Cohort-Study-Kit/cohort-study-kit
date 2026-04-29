@@ -364,7 +364,19 @@ def build_examination_data(examination: Examination, schema: dict) -> dict:
 
         try:
             if schema_type == "integer":
-                value: int | float | str = int(cell.value)
+                # First try direct int coercion of the cell value.
+                value = int(cell.value)
+                # If this property has integer choices (e.g. "0"/"1" stored
+                # as strings but choices are ints), keep the coerced int so
+                # later condition checks like `=== 0` keep working.
+                prop_choices = (properties.get(col_name) or {}).get("choices")
+                if prop_choices:
+                    str_cell = str(cell.value)
+                    for ch in prop_choices:
+                        ch_val = ch[1] if isinstance(ch, list) and len(ch) == 2 else ch
+                        if str(ch_val) == str_cell:
+                            # Keep the already-coerced int value.
+                            break
             elif schema_type == "number":
                 value = float(cell.value)
             else:
@@ -672,9 +684,10 @@ class Command(BaseCommand):
             )
             return "skipped"
 
-        # --- Step 1: build schema and examination data from Columns/Cells ---
+        has_step1_summary = False
+        has_step2_summary = False
 
-        step1_summary = ""
+        # --- Step 1: build schema and examination data from Columns/Cells ---
 
         if has_columns and not already_has_schema:
             columns = list(dataset.column_set.order_by("display_order", "id"))
@@ -691,12 +704,13 @@ class Command(BaseCommand):
                 exam.data = build_examination_data(exam, new_schema)
                 updated_examinations.append(exam)
 
-            step1_summary = (
+            _step1_summary = (
                 f"Step 1: {len(columns)} columns → "
                 f"{len(new_schema['properties'])} schema properties | "
                 f"{len(examinations_step1)} examinations | "
                 f"{n_cells} cells"
             )
+            has_step1_summary = True
         else:
             new_schema = None
             updated_examinations = []
@@ -710,8 +724,6 @@ class Command(BaseCommand):
             schema_props_for_step2 = new_schema["properties"]
         else:
             schema_props_for_step2 = copy.deepcopy(schema_properties)
-
-        step2_summary = ""
 
         if needs_step2 and form.get("elements"):
             # Load examinations for Step 2 data mutation (multi_column merges).
@@ -755,22 +767,59 @@ class Command(BaseCommand):
                 parts.append(
                     f"scaffolding×{step2_report['scaffolding_removed']} removed",
                 )
-            step2_summary = "Step 2: " + (
+            _step2_summary = "Step 2: " + (
                 " | ".join(parts) if parts else "nothing converted"
             )
+            has_step2_summary = True
         else:
             form_copy = None
             exam_data_copies = []
             examinations_step2 = []
             step2_report = None
 
-        # --- Print summary ---
+        # --- Rewrite JS conditions: int-choice props used === 0 / !== 0 etc. ---
+        # When a property has integer choices (e.g. "0"/"1" stored as strings
+        # but the schema type is "string" with choices like [["No", 0], ["Yes", 1]),
+        # conditions may compare against the integer form: `sportinschool === 0`.
+        # After migration the stored values remain strings, so we rewrite those
+        # comparisons to string form: `sportinschool === "0"`.
+        if form_copy and schema_props_for_step2:
+            for elem in _flat_elements(form_copy):
+                for cond in elem.get("conditions") or []:
+                    code = cond.get("code", "")
+                    if not code:
+                        continue
+                    new_code = code
+                    for _prop_name, prop in schema_props_for_step2.items():
+                        choices = prop.get("choices")
+                        if not choices:
+                            continue
+                        # Collect all integer values used in choices for this property.
+                        int_values = set()
+                        for ch in choices:
+                            raw = ch[1] if isinstance(ch, list) and len(ch) == 2 else ch
+                            try:
+                                int_values.add(str(int(raw)))
+                            except (ValueError, TypeError):
+                                pass
+                        if not int_values:
+                            continue
+                        for iv in int_values:
+                            # Replace === 0  with === "0"  (and similar for !==)
+                            new_code = new_code.replace(f"=== {iv}", f'=== "{iv}"')
+                            new_code = new_code.replace(f"!== {iv}", f'!== "{iv}"')
+                            # Also handle == and != for completeness.
+                            new_code = new_code.replace(f"== {iv} ", f'== "{iv}" ')
+                            new_code = new_code.replace(f"!= {iv} ", f'!= "{iv}" ')
+                    if new_code != code:
+                        cond["code"] = new_code
 
+        # --- Print summary ---
         summary_lines = []
-        if step1_summary:
-            summary_lines.append(step1_summary)
-        if step2_summary:
-            summary_lines.append(step2_summary)
+        if has_step1_summary:
+            summary_lines.append(_step1_summary)
+        if has_step2_summary:
+            summary_lines.append(_step2_summary)
         for line in summary_lines:
             self.stdout.write(f"  {ds_label} {line}")
 
