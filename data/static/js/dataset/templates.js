@@ -513,7 +513,7 @@ const renderJsonSchemaForm = (
                   ? ` tabindex="${displayOptions.tabindex + 3}"`
                   : ""
               }>
-            <option value="">---------</option>
+            <option value=""></option>
             ${schema.choices.map(
               (choice) =>
                 `<option value="${he.encode(choice)}" ${
@@ -989,7 +989,7 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
         <label class="form-label requiredField">
           Type <span class="asteriskField">*</span>
           <select name="value-type" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             ${["column", "property", "diagnose", "medication"]
               .map(
                 (valueType) =>
@@ -1018,7 +1018,7 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
         <label class="form-label requiredField">
           Dataset <span class="asteriskField">*</span>
           <select name="value-dataset" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             ${datasetOptions
               .map(
                 (datasetOption) =>
@@ -1034,7 +1034,7 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
         <label class="form-label requiredField">
           Column <span class="asteriskField">*</span>
           <select name="value-column" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             ${columnOptions
               .map(
                 (columnOption) =>
@@ -1061,7 +1061,7 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
         <label class="form-label requiredField">
           Dataset <span class="asteriskField">*</span>
           <select name="value-dataset" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             ${datasetOptions
               .map(
                 (datasetOption) =>
@@ -1077,7 +1077,7 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
         <label class="form-label requiredField">
           Property <span class="asteriskField">*</span>
           <select name="value-property" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             ${propertyOptions
               .map(
                 (propertyOption) =>
@@ -1196,7 +1196,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <label for="id_tag" class="form-label">
           Tag
           <select name="tag" class="select form-select">
-            <option value="">---------</option>
+            <option value=""></option>
             <option value="h1" ${
               element.content.tag === "h1" ? "selected" : ""
             }>H1</option>
@@ -1244,7 +1244,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <div class="mb-3">
           <label class="form-label requiredField"> Column <span class="asteriskField">*</span>
             <select name="column" class="select form-select">
-              <option value="">------------</option>
+              <option value=""></option>
               ${options.columns
                 .map((column) => {
                   return `<option value="${he.encode(String(column[0]))}" ${
@@ -1327,7 +1327,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
       returnString += `<div class="mb-3">
           <label class="form-label requiredField"> Property <span class="asteriskField">*</span>
             <select name="property" class="select form-select">
-              <option value="">------------</option>
+              <option value=""></option>
               ${Object.keys(options.data_schema.properties)
                 .map((property) => {
                   return `<option value="${he.encode(property)}" ${
@@ -1432,7 +1432,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <label>
           Column*:
           <select class="column" name="column">
-            <option value="">------------</option>
+            <option value=""></option>
             ${options.columns
               .map(
                 (column) =>
@@ -1456,7 +1456,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <label>
           Input type*:
           <select class="input_type" name="input_type">
-            <option value="">------------</option>
+            <option value=""></option>
             <option value="radio-buttons" ${
               element.content.input_type === "radio-buttons" ? "selected" : ""
             }>Radio buttons</option>
@@ -1469,7 +1469,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
       <div class="flex-container">
         <label>Placement*:
           <select class="placement" name="placement">
-            <option value="">------------</option>
+            <option value=""></option>
             <option value="below" ${
               element.content.placement === "below" ? "selected" : ""
             }>Below</option>
@@ -1500,7 +1500,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <label>
           Options orientation*:
           <select class="options_orientation" name="options_orientation">
-            <option value="">------------</option>
+            <option value=""></option>
             <option value="vertical" ${
               element.content.options_orientation === "vertical"
                 ? "selected"
@@ -1588,7 +1588,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         <label>
           Options orientation*:
           <select class="options_orientation" name="options_orientation">
-            <option value="">------------</option>
+            <option value=""></option>
             <option value="vertical" ${
               element.content.options_orientation === "vertical"
                 ? "selected"
@@ -1626,7 +1626,7 @@ const elementPropertiesFormTemplate = (element, value, options) => {
                   <label class="form-label">
                     Column
                     <select class="column" name="option-column">
-                      <option value="">------------</option>
+                      <option value=""></option>
                       ${options.columns
                         .map(
                           (column) =>
