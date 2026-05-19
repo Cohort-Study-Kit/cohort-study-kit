@@ -16,7 +16,7 @@ mysqlclient==2.2.8
 pre-commit==4.5.1
 python-dotenv==1.2.2
 selenium==4.43.0
-webdriver-manager==4.0.2
+webdriver-manager==4.1.1
 nodejs-wheel==24.15.0
 pip>=25.3
 watchdog==6.0.0
