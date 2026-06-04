@@ -97,9 +97,21 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             "autofill.profile_enabled": False,
             "autofill.credit_card_enabled": False,
             "profile.default_content_setting_values.notifications": 2,
+            "safebrowsing.enabled": False,
         }
         options.add_experimental_option("prefs", prefs)
         options.add_argument("--disable-save-password-bubble")
+        options.add_argument("--disable-features=PasswordLeakDetection")
+        options.add_argument("--disable-password-leak-detection")
+        options.add_argument("--test-type")
+        options.add_argument("--disable-infobars")
+        options.add_argument(
+            "--disable-features=PasswordCheck,"
+            "PasswordLeakDetection,PasswordManager,"
+            "SafeBrowsingEnhanced,SafeBrowsingPhishingRepu",
+        )
+        options.add_argument("--safebrowsing-disable-download-protection")
+        options.add_argument("--safebrowsing-disable-extension-check")
 
         if os.getenv("CI"):
             # Github Actions
@@ -114,7 +126,7 @@ class VerboseLiveServerTestCase(StaticLiveServerTestCase):
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-software-rasterizer")
             options.add_argument(
-                "--disable-features=VizDisplayCompositor,NetworkServiceSandbox",
+                "--disable-features=VizDisplayCompositor,NetworkServiceSandbox,PasswordLeakDetection",
             )
             options.add_argument("--enable-unsafe-swiftshader")
             # Additional stability flags for CI (avoid --single-process as it crashes in CI)

@@ -772,6 +772,7 @@ const renderContentObject = (
         caption: contentObject.caption || "",
         hide_text: contentObject.hide_text || false,
         options_orientation: contentObject.options_orientation || "horizontal",
+        input_type: contentObject.input_type || "",
       }
       returnString = `<div class="p-2 h-100${
         warning ? " warning" : ""

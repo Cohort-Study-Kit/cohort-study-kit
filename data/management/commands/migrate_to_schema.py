@@ -427,8 +427,8 @@ def migrate_form_in_memory(
     Display properties from the old content are preserved in the new
     data_question content object:
         input_question        — width, tabindex, placement, placeholder, caption
-        single_column_question — width, tabindex, placement, caption
-        multi_column_question  — tabindex, options_orientation
+        single_column_question — width, tabindex, placement, caption, input_type, options_orientation
+        multi_column_question  — tabindex, options_orientation, hide_text
 
     Returns a report dict:
         converted_input        int
@@ -473,15 +473,33 @@ def migrate_form_in_memory(
             ):
                 if key in content:
                     new_content[key] = content[key]
+            # input_question defaulted to "below"; data_question defaults to
+            # "right_of".  Ensure the old default is preserved when placement
+            # was missing or empty.
+            if not new_content.get("placement"):
+                new_content["placement"] = "below"
             element["content"] = new_content
             report["converted_input"] += 1
 
         elif elem_type == "single_column_question":
             col_name = str(content.get("column") or "")
             new_content = {"type": "data_question", "property": col_name}
-            for key in ("width", "tabindex", "placement", "caption", "hide_text"):
+            for key in (
+                "width",
+                "tabindex",
+                "placement",
+                "caption",
+                "hide_text",
+                "input_type",
+                "options_orientation",
+            ):
                 if key in content:
                     new_content[key] = content[key]
+            # single_column_question defaulted to "below"; data_question
+            # defaults to "right_of".  Preserve the old default when missing
+            # or empty.
+            if not new_content.get("placement"):
+                new_content["placement"] = "below"
             element["content"] = new_content
             report["converted_single"] += 1
 

@@ -2,7 +2,7 @@ import logging
 import time
 
 from django.contrib.auth import get_user_model
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -342,14 +342,14 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.assertEqual("", duration_field.get_attribute("value"))
 
         diagnose_selector = self.driver.find_element(By.CSS_SELECTOR, "div.choices")
-        diagnose_selector.click()
-        diagnose_field = self.driver.find_element(
+        self.safe_click(diagnose_selector)
+        diagnose_field = self.wait_for_element_clickable(
             By.CSS_SELECTOR,
             "div.choices input[type=search]",
         )
         # Clear and refocus the field to ensure it's interactable
         self.driver.execute_script("arguments[0].value = '';", diagnose_field)
-        diagnose_field.click()
+        self.safe_click(diagnose_field)
         diagnose_field.send_keys("arveli")
         time.sleep(self.sleep_time)
         diagnose_field.send_keys(Keys.ENTER)
@@ -457,16 +457,25 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.driver.execute_script("arguments[0].scrollBy(0,-600)", medication_list)
         self.driver.execute_script("arguments[0].scrollTo(0,0)", medication_list)
 
-        # Wait for the specific medication to appear in the list
+        # Wait for the specific medication to appear in the list and be clickable
         medication_choice = WebDriverWait(self.driver, self.wait_time).until(
             EC.presence_of_element_located(
                 (By.XPATH, './/div[contains(text(),"A02AD01OR Alminox")]'),
             ),
         )
-        medication_choice.click()
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});",
+            medication_choice,
+        )
+        time.sleep(0.3)
+        self.safe_click(medication_choice)
+        # Close the choices dropdown by clicking on a neutral element
+        time.sleep(0.3)
+        self.driver.execute_script("document.activeElement.blur();")
+        time.sleep(0.3)
 
         pn_field = self.driver.find_element(By.ID, "id_pn")
-        pn_field.click()
+        self.driver.execute_script("arguments[0].click();", pn_field)
 
         ordination_field = self.driver.find_element(By.ID, "id_ordination_comment")
         ordination_field.click()
@@ -501,9 +510,17 @@ class InteractionTest(VerboseLiveServerTestCase):
         )
 
         # ##### Verify created medication #####
-        created_row = self.driver.find_element(
-            By.XPATH,
-            '//div[@id="medication"]//tbody//tr[./td[contains(text(), "A02AD01OR")]]',
+        # Wait for the medication table to load before searching for the row
+        WebDriverWait(self.driver, self.wait_time).until(
+            EC.presence_of_element_located((By.ID, "medication")),
+        )
+        created_row = WebDriverWait(self.driver, self.wait_time).until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    '//div[@id="medication"]//tbody//tr[./td[contains(text(), "A02AD01OR")]]',
+                ),
+            ),
         )
         atc_code = created_row.find_element(By.XPATH, ".//td[2]").text
         self.assertEqual("A02AD01OR", atc_code)
@@ -1476,24 +1493,31 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.safe_click(context)
         self.safe_click(examination_row)
         # Verify that the row in on Examination (examination-list) is marked as "locked".
-        # Re-find the element to avoid stale reference
-        examination_row = self.driver.find_element(
-            By.CSS_SELECTOR,
-            "#examinations-list .datatable-container tbody tr[data-name=screen_time]",
+        # Re-find the element to avoid stale reference and wait for class update.
+        WebDriverWait(self.driver, self.wait_time).until(
+            lambda driver: "locked"
+            in driver.find_element(
+                By.CSS_SELECTOR,
+                "#examinations-list .datatable-container tbody tr[data-name=screen_time]",
+            )
+            .get_attribute("class")
+            .split(),
         )
-        self.assertIn("locked", examination_row.get_attribute("class").split(" "))
         # # Here we just choose the first row on Cell box, our examination row is the one with latest startdate and
         # # the Cell box is default sorted by visit type and startdate.
-        # Use retry mechanism to avoid stale element issues
+        # Use retry mechanism to avoid stale element issues and wait for class update
         for attempt in range(3):
             try:
                 md_row = self.driver.find_element(
                     By.XPATH,
                     '//div[@id="cells-list"]//table//tbody//tr[1]',
                 )
-                self.assertIn("locked", md_row.get_attribute("class").split(" "))
+                WebDriverWait(self.driver, self.wait_time).until(
+                    lambda driver, row=md_row: "locked"
+                    in row.get_attribute("class").split(),
+                )
                 break
-            except StaleElementReferenceException:
+            except (StaleElementReferenceException, TimeoutException):
                 if attempt == 2:
                     raise
                 time.sleep(self.sleep_time)

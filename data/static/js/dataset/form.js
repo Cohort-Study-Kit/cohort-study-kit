@@ -115,6 +115,19 @@ export class ExaminationForm {
 
     surveyForm.addEventListener("click", (event) => this.click(event))
 
+    // Track radio-button checked state so that clicking an already-checked
+    // radio can cancel the selection (clear the group).
+    surveyForm.addEventListener("mousedown", (event) => {
+      if (event.target.type === "radio") {
+        event.target.dataset.wasChecked = event.target.checked
+      }
+    })
+    surveyForm.addEventListener("keydown", (event) => {
+      if (event.target.type === "radio" && event.key === " ") {
+        event.target.dataset.wasChecked = event.target.checked
+      }
+    })
+
     // Save on enter
     document.addEventListener("keyup", (event) => {
       if (event.key === "Enter" && event.target.tagName !== "TEXTAREA") {
@@ -125,6 +138,28 @@ export class ExaminationForm {
   }
 
   click(event) {
+    // Radio-button cancel: clicking (or Space-activating) an already-checked
+    // radio button deselects the entire group and clears the value.
+    if (
+      event.target.type === "radio" &&
+      event.target.dataset.wasChecked === "true"
+    ) {
+      event.target.checked = false
+      const path = event.target.dataset.path?.trim()
+      if (path) {
+        const pathParts = path.split(" ")
+        const name = pathParts.pop()
+        let destination = this.examination.data
+        pathParts.forEach((pathPart) => {
+          const pathSelector = isNaN(pathPart) ? pathPart : parseInt(pathPart)
+          destination = destination[pathSelector]
+        })
+        destination[name] = ""
+        this.render()
+      }
+      return
+    }
+
     if (event.target.closest("button.json-schema-array-add-item")) {
       const type = event.target.dataset.type
       const path = event.target.dataset.path?.trim()
