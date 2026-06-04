@@ -80,11 +80,12 @@ def main():
                 active_values[col_name].add(str(val))
 
         # Migrated path: Examination.data
-        for exam in (
-            Examination.objects.filter(dataset=dataset).exclude(data={}).iterator()
-        ):
+        for exam in Examination.objects.filter(dataset=dataset).iterator():
+            data = exam.data
+            if not isinstance(data, dict) or not data:
+                continue
             for col_name, allowed in column_mismatches.items():
-                val = exam.data.get(col_name)
+                val = data.get(col_name)
                 if val is None:
                     continue
                 if str(val) in allowed:
