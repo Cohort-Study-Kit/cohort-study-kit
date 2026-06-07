@@ -103,8 +103,10 @@ Safety notes
 """
 
 import copy
+import csv
 import re
 import sys
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -120,6 +122,88 @@ _NUMBER_RE = re.compile(
     re.IGNORECASE,
 )
 _VARCHAR_RE = re.compile(r"^VARCHAR2?\s*\(\s*(\d+)\s*\)$", re.IGNORECASE)
+
+
+# ---------------------------------------------------------------------------
+# Value mapping helpers
+# ---------------------------------------------------------------------------
+
+
+def load_value_mapping(csv_path: str) -> dict[tuple[str, str, str], str]:
+    """
+    Load a value-mapping CSV with columns:
+        dataset,column_name,shown_value,currently_stored_value,new_stored_value
+
+    Returns a dict keyed by (dataset, column_name, currently_stored_value)
+    with the corresponding new_stored_value.
+    """
+    mapping: dict[tuple[str, str, str], str] = {}
+    path = Path(csv_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Value mapping file not found: {csv_path}")
+
+    with path.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            dataset = (row.get("dataset") or "").strip()
+            column = (row.get("column_name") or "").strip()
+            old = (row.get("currently_stored_value") or "").strip()
+            new = (row.get("new_stored_value") or "").strip()
+            if dataset and column and old:
+                mapping[(dataset, column, old)] = new
+    return mapping
+
+
+def map_data_value(value, mapping: dict, dataset_name: str, col_name: str):
+    """Return the mapped replacement for a single data value, or the value itself."""
+    if value is None:
+        return value
+    key = (dataset_name, col_name, str(value))
+    if key in mapping:
+        return mapping[key]
+    return value
+
+
+def apply_value_mapping_to_data(
+    data: dict,
+    mapping: dict[tuple[str, str, str], str],
+    dataset_name: str,
+) -> dict:
+    """Transform data dict values according to the mapping (in-place)."""
+    if not mapping:
+        return data
+    for key in list(data.keys()):
+        data[key] = map_data_value(data[key], mapping, dataset_name, key)
+    return data
+
+
+def apply_value_mapping_to_choices(
+    choices: list,
+    mapping: dict[tuple[str, str, str], str],
+    dataset_name: str,
+    col_name: str,
+) -> list:
+    """
+    Update a schema choices list so the stored values match the mapping.
+
+    Choices may be plain values or [text, value] pairs.  When a value is
+    remapped and the new value equals the text, the choice is collapsed
+    to a plain value (matching the original migration convention).
+    """
+    if not choices:
+        return choices
+    new_choices: list = []
+    for ch in choices:
+        if isinstance(ch, list) and len(ch) == 2:
+            text, val = ch
+            new_val = map_data_value(val, mapping, dataset_name, col_name)
+            if str(text) == str(new_val):
+                new_choices.append(new_val)
+            else:
+                new_choices.append([text, new_val])
+        else:
+            new_choices.append(map_data_value(ch, mapping, dataset_name, col_name))
+    return new_choices
 
 
 # ---------------------------------------------------------------------------
@@ -343,7 +427,12 @@ def build_data_schema(dataset: Dataset) -> dict:
     }
 
 
-def build_examination_data(examination: Examination, schema: dict) -> dict:
+def build_examination_data(
+    examination: Examination,
+    schema: dict,
+    mapping: dict[tuple[str, str, str], str] | None = None,
+    dataset_name: str = "",
+) -> dict:
     """
     Build the data dict for a single examination from its Cell set.
 
@@ -351,6 +440,9 @@ def build_examination_data(examination: Examination, schema: dict) -> dict:
     the schema that was just built for this dataset.  Empty-string and null
     cell values are omitted so the dict stays sparse — a missing key means
     "no data entered", matching the Model-A convention.
+
+    If a value mapping is provided, stored cell values are replaced by their
+    mapped new_stored_value before coercion.
     """
     properties = schema.get("properties") or {}
     data: dict = {}
@@ -362,28 +454,33 @@ def build_examination_data(examination: Examination, schema: dict) -> dict:
         col_name = cell.column.name
         schema_type = (properties.get(col_name) or {}).get("type", "string")
 
+        # Apply value mapping on the raw cell value before type coercion.
+        raw_value = cell.value
+        if mapping:
+            raw_value = map_data_value(raw_value, mapping, dataset_name, col_name)
+
         try:
             if schema_type == "integer":
                 # First try direct int coercion of the cell value.
-                value = int(cell.value)
+                value = int(raw_value)
                 # If this property has integer choices (e.g. "0"/"1" stored
                 # as strings but choices are ints), keep the coerced int so
                 # later condition checks like `=== 0` keep working.
                 prop_choices = (properties.get(col_name) or {}).get("choices")
                 if prop_choices:
-                    str_cell = str(cell.value)
+                    str_cell = str(raw_value)
                     for ch in prop_choices:
                         ch_val = ch[1] if isinstance(ch, list) and len(ch) == 2 else ch
                         if str(ch_val) == str_cell:
                             # Keep the already-coerced int value.
                             break
             elif schema_type == "number":
-                value = float(cell.value)
+                value = float(raw_value)
             else:
-                value = cell.value
+                value = raw_value
         except (ValueError, TypeError):
             # Stored value doesn't parse — keep as string so no data is lost.
-            value = cell.value
+            value = raw_value
 
         data[col_name] = value
 
@@ -631,10 +728,32 @@ class Command(BaseCommand):
             default=None,
             help="Migrate only the named dataset (slug).",
         )
+        parser.add_argument(
+            "--value-mapping",
+            metavar="CSV_PATH",
+            default=None,
+            help=(
+                "Path to a CSV file with columns "
+                "dataset,column_name,shown_value,currently_stored_value,new_stored_value. "
+                "When provided, stored values are remapped during migration."
+            ),
+        )
 
     def handle(self, *args, **options):
         dry_run: bool = options["dry_run"]
         target_name: str | None = options["dataset"]
+        mapping_path: str | None = options["value_mapping"]
+
+        mapping: dict[tuple[str, str, str], str] = {}
+        if mapping_path:
+            try:
+                mapping = load_value_mapping(mapping_path)
+                self.stdout.write(
+                    f"Loaded {len(mapping)} value mapping(s) from {mapping_path}.\n",
+                )
+            except FileNotFoundError as exc:
+                self.stderr.write(self.style.ERROR(str(exc)))
+                sys.exit(1)
 
         if dry_run:
             self.stdout.write(
@@ -658,7 +777,11 @@ class Command(BaseCommand):
         total_errors = 0
 
         for dataset in datasets:
-            outcome = self._process_dataset(dataset, dry_run=dry_run)
+            outcome = self._process_dataset(
+                dataset,
+                dry_run=dry_run,
+                mapping=mapping,
+            )
             if outcome == "migrated":
                 total_migrated += 1
             elif outcome == "skipped":
@@ -680,7 +803,12 @@ class Command(BaseCommand):
         if total_errors:
             sys.exit(1)
 
-    def _process_dataset(self, dataset: Dataset, dry_run: bool) -> str:
+    def _process_dataset(
+        self,
+        dataset: Dataset,
+        dry_run: bool,
+        mapping: dict[tuple[str, str, str], str],
+    ) -> str:
         """Process one dataset.  Returns 'migrated', 'skipped', or 'error'."""
         ds_label = f"[{dataset.name}]"
 
@@ -719,8 +847,24 @@ class Command(BaseCommand):
 
             updated_examinations = []
             for exam in examinations_step1:
-                exam.data = build_examination_data(exam, new_schema)
+                exam.data = build_examination_data(
+                    exam,
+                    new_schema,
+                    mapping=mapping,
+                    dataset_name=dataset.name,
+                )
                 updated_examinations.append(exam)
+
+            # Apply value mapping to schema choices so the stored values match.
+            if mapping:
+                for prop_name, prop in new_schema["properties"].items():
+                    if "choices" in prop:
+                        prop["choices"] = apply_value_mapping_to_choices(
+                            prop["choices"],
+                            mapping,
+                            dataset.name,
+                            prop_name,
+                        )
 
             _step1_summary = (
                 f"Step 1: {len(columns)} columns → "
@@ -766,6 +910,24 @@ class Command(BaseCommand):
                     self.style.ERROR(f"  {ds_label} ✗ Step 2 computation error: {exc}"),
                 )
                 return "error"
+
+            # Apply value mapping to already-migrated Examination.data and to
+            # schema choices when Step 1 was skipped.
+            if mapping:
+                for exam_data in exam_data_copies:
+                    apply_value_mapping_to_data(
+                        exam_data,
+                        mapping,
+                        dataset.name,
+                    )
+                for prop_name, prop in schema_props_for_step2.items():
+                    if "choices" in prop:
+                        prop["choices"] = apply_value_mapping_to_choices(
+                            prop["choices"],
+                            mapping,
+                            dataset.name,
+                            prop_name,
+                        )
 
             parts = []
             if step2_report["converted_input"]:
