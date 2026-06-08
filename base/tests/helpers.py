@@ -369,7 +369,7 @@ def login_testuser(self):
 
     # Log in with the test user
     username_input.send_keys("testuser")
-    password_input.send_keys("12345")
+    password_input.send_keys("SeleniumTest2026!")
     submit_button.click()
 
     # Check that user has been logged in.

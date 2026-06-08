@@ -27,7 +27,7 @@ class InteractionTest(VerboseLiveServerTestCase):
         User = get_user_model()
         self.user = User.objects.create_user(
             username="testuser",
-            password="12345",
+            password="SeleniumTest2026!",
             is_staff=True,
         )
         self.action = ActionChains(self.driver)
@@ -67,7 +67,7 @@ class InteractionTest(VerboseLiveServerTestCase):
 
         # Log in with the test user
         username_input.send_keys("testuser")
-        password_input.send_keys("12345")
+        password_input.send_keys("SeleniumTest2026!")
         # Use JavaScript click to avoid potential page load timeout in CI
         self.driver.execute_script("arguments[0].click();", submit_button)
 
