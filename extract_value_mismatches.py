@@ -18,7 +18,7 @@ Expected final CSV columns:
 import csv
 import sys
 
-from data.models import Cell, Dataset, Examination
+from data.models import Dataset
 
 
 def _flat_elements(form: dict) -> list[dict]:
@@ -63,42 +63,12 @@ def main():
         if not column_mismatches:
             continue
 
-        # Check which mismatched values actually appear in the data.
-        # We check both the legacy Cell model and the migrated Examination.data.
-        active_values: dict[str, set[str]] = {c: set() for c in column_mismatches}
-
-        # Legacy path: Cell values
-        for cell in Cell.objects.filter(
-            column__dataset=dataset,
-            column__name__in=column_mismatches.keys(),
-        ).iterator():
-            val = cell.value
-            if val is None or val == "":
-                continue
-            col_name = cell.column.name
-            if str(val) in column_mismatches.get(col_name, set()):
-                active_values[col_name].add(str(val))
-
-        # Migrated path: Examination.data
-        for exam in Examination.objects.filter(dataset=dataset).iterator():
-            data = exam.data
-            if not isinstance(data, dict) or not data:
-                continue
-            for col_name, allowed in column_mismatches.items():
-                val = data.get(col_name)
-                if val is None:
-                    continue
-                if str(val) in allowed:
-                    active_values[col_name].add(str(val))
-
-        # Emit rows for every active mismatch
+        # Emit rows for every mismatch
         for elem in elements:
             content = elem.get("content") or {}
             if content.get("type") != "single_column_question":
                 continue
             col_name = str(content.get("column") or "")
-            if col_name not in active_values or not active_values[col_name]:
-                continue
             for opt in content.get("options") or []:
                 text = str(opt.get("text", ""))
                 db_value = opt.get("db_value")
@@ -107,8 +77,7 @@ def main():
                 db_str = str(db_value)
                 if db_str == text:
                     continue
-                if db_str in active_values[col_name]:
-                    writer.writerow([dataset.name, col_name, text, db_str])
+                writer.writerow([dataset.name, col_name, text, db_str])
 
 
 if __name__ == "__main__":
