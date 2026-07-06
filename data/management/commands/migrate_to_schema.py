@@ -104,9 +104,11 @@ Safety notes
 
 import copy
 import csv
+import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -204,6 +206,172 @@ def apply_value_mapping_to_choices(
         else:
             new_choices.append(map_data_value(ch, mapping, dataset_name, col_name))
     return new_choices
+
+
+# ---------------------------------------------------------------------------
+# Condition / show_value / warning rewriting helpers
+# ---------------------------------------------------------------------------
+
+
+def _js_literal(value, prefer_number: bool = False) -> str:
+    """Return a JavaScript literal for *value*.
+
+    When *prefer_number* is true and *value* can be parsed as a number,
+    return an unquoted numeric literal; otherwise return a double-quoted
+    string literal.
+    """
+    if prefer_number:
+        str_value = str(value)
+        if re.fullmatch(r"-?\d+", str_value):
+            return str(int(str_value))
+        if re.fullmatch(r"-?\d+\.\d+", str_value):
+            return str(float(str_value))
+    return json.dumps(str(value), ensure_ascii=False)
+
+
+def _old_literal_patterns(old_value) -> list[str]:
+    """Return regex fragments that can match *old_value* as a JS literal."""
+    old_str = str(old_value)
+    patterns: list[str] = []
+    if re.fullmatch(r"-?\d+(?:\.\d+)?", old_str):
+        patterns.append(r'(?<!["\'\w])' + re.escape(old_str) + r'(?![\w"\'])')
+    patterns.append(r'"' + re.escape(old_str) + r'"')
+    patterns.append(r"'" + re.escape(old_str) + r"'")
+    return patterns
+
+
+def _rewrite_code_for_variable(
+    code: str,
+    variable: str,
+    old_to_new: dict[str, Any],
+    prop: dict,
+) -> str:
+    """Rewrite comparisons between *variable* and old stored values in *code*.
+
+    For each ``old -> new`` replacement in *old_to_new*, occurrences like
+    ``variable === old`` or ``old === variable`` are updated to use the
+    JavaScript literal for *new*.  The new literal is numeric when the
+    property schema type is integer/number and *new* is numeric, otherwise
+    it is a string literal.
+    """
+    if not code or not old_to_new:
+        return code
+    prefer_number = prop.get("type") in ("integer", "number")
+    var_re = re.escape(variable)
+    op_re = r"(===|!==|==|!=|<=|>=|<|>)"
+    new_code = code
+    # Longest old values first to avoid partial replacements.
+    for old, new in sorted(old_to_new.items(), key=lambda item: -len(str(item[0]))):
+        old_patterns = _old_literal_patterns(old)
+        if not old_patterns:
+            continue
+        old_pat = "|".join(old_patterns)
+        new_lit = _js_literal(new, prefer_number=prefer_number)
+        # variable <op> old
+        new_code = re.sub(
+            rf"\b{var_re}\b\s*{op_re}\s*(?:{old_pat})",
+            lambda m, _new_lit=new_lit: f"{variable} {m.group(1)} {_new_lit}",
+            new_code,
+        )
+        # old <op> variable
+        new_code = re.sub(
+            rf"(?:{old_pat})\s*{op_re}\s*\b{var_re}\b",
+            lambda m, _new_lit=new_lit: f"{_new_lit} {m.group(1)} {variable}",
+            new_code,
+        )
+    return new_code
+
+
+def _column_old_to_new(
+    column_name: str,
+    prop: dict,
+    value_map: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Return old-value -> new-value replacements for one column.
+
+    Entries come from the CSV value mapping.  When the column has no mapping
+    entries, identity replacements are derived from the schema choices so
+    that numeric literals are still quoted correctly for string-typed
+    properties.
+    """
+    old_to_new: dict[str, Any] = dict(value_map.get(column_name) or {})
+    choices = prop.get("choices")
+    if choices:
+        for ch in choices:
+            val = ch[1] if isinstance(ch, list) and len(ch) == 2 else ch
+            str_val = str(val)
+            if str_val not in old_to_new:
+                old_to_new[str_val] = val
+    return old_to_new
+
+
+def rewrite_form_code_for_value_mapping(
+    form: dict,
+    schema_properties: dict,
+    value_map: dict[str, dict[str, Any]],
+) -> None:
+    """Update condition/show_value/warning code to use post-mapping values.
+
+    The form dict is mutated in-place.
+    """
+    if not form:
+        return
+    for element in _flat_elements(form):
+        content = element.get("content") or {}
+        # Element conditions
+        for cond in element.get("conditions") or []:
+            code = cond.get("code", "")
+            if not code:
+                continue
+            new_code = code
+            for var in cond.get("variables") or []:
+                prop = schema_properties.get(var)
+                if not prop:
+                    continue
+                old_to_new = _column_old_to_new(var, prop, value_map)
+                if old_to_new:
+                    new_code = _rewrite_code_for_variable(
+                        new_code,
+                        var,
+                        old_to_new,
+                        prop,
+                    )
+            if new_code != code:
+                cond["code"] = new_code
+        # show_value source
+        if content.get("type") == "show_value":
+            source = content.get("source", "")
+            if source:
+                new_source = source
+                for var in content.get("variables") or []:
+                    prop = schema_properties.get(var)
+                    if not prop:
+                        continue
+                    old_to_new = _column_old_to_new(var, prop, value_map)
+                    if old_to_new:
+                        new_source = _rewrite_code_for_variable(
+                            new_source,
+                            var,
+                            old_to_new,
+                            prop,
+                        )
+                if new_source != source:
+                    content["source"] = new_source
+    # Form-level warnings
+    for warning in form.get("warnings") or []:
+        test = warning.get("test", "")
+        if not test:
+            continue
+        new_test = test
+        for var in warning.get("variables") or []:
+            prop = schema_properties.get(var)
+            if not prop:
+                continue
+            old_to_new = _column_old_to_new(var, prop, value_map)
+            if old_to_new:
+                new_test = _rewrite_code_for_variable(new_test, var, old_to_new, prop)
+        if new_test != test:
+            warning["test"] = new_test
 
 
 # ---------------------------------------------------------------------------
@@ -812,6 +980,12 @@ class Command(BaseCommand):
         """Process one dataset.  Returns 'migrated', 'skipped', or 'error'."""
         ds_label = f"[{dataset.name}]"
 
+        ds_value_map: dict[str, dict[str, Any]] = {}
+        if mapping:
+            for (ds, col, old), new in mapping.items():
+                if ds == dataset.name:
+                    ds_value_map.setdefault(col, {})[old] = new
+
         has_columns = dataset.column_set.exists()
         already_has_schema = bool((dataset.data_schema or {}).get("properties"))
         form = dataset.form or {}
@@ -957,42 +1131,20 @@ class Command(BaseCommand):
             examinations_step2 = []
             step2_report = None
 
-        # --- Rewrite JS conditions: int-choice props used === 0 / !== 0 etc. ---
-        # When a property has integer choices (e.g. "0"/"1" stored as strings
-        # but the schema type is "string" with choices like [["No", 0], ["Yes", 1]),
-        # conditions may compare against the integer form: `sportinschool === 0`.
-        # After migration the stored values remain strings, so we rewrite those
-        # comparisons to string form: `sportinschool === "0"`.
+        # --- Rewrite JS conditions/value checks to use post-mapping values ---
+        # Step 2 already deep-copied the form when it ran.  If it did not run
+        # but a value mapping is present, the form may still contain conditions,
+        # show_value sources, or warnings that reference old stored values, so
+        # deep-copy it here for rewriting.
+        if form_copy is None and mapping and form.get("elements"):
+            form_copy = copy.deepcopy(form)
+
         if form_copy and schema_props_for_step2:
-            for elem in _flat_elements(form_copy):
-                for cond in elem.get("conditions") or []:
-                    code = cond.get("code", "")
-                    if not code:
-                        continue
-                    new_code = code
-                    for _prop_name, prop in schema_props_for_step2.items():
-                        choices = prop.get("choices")
-                        if not choices:
-                            continue
-                        # Collect all integer values used in choices for this property.
-                        int_values = set()
-                        for ch in choices:
-                            raw = ch[1] if isinstance(ch, list) and len(ch) == 2 else ch
-                            try:
-                                int_values.add(str(int(raw)))
-                            except (ValueError, TypeError):
-                                pass
-                        if not int_values:
-                            continue
-                        for iv in int_values:
-                            # Replace === 0  with === "0"  (and similar for !==)
-                            new_code = new_code.replace(f"=== {iv}", f'=== "{iv}"')
-                            new_code = new_code.replace(f"!== {iv}", f'!== "{iv}"')
-                            # Also handle == and != for completeness.
-                            new_code = new_code.replace(f"== {iv} ", f'== "{iv}" ')
-                            new_code = new_code.replace(f"!= {iv} ", f'!= "{iv}" ')
-                    if new_code != code:
-                        cond["code"] = new_code
+            rewrite_form_code_for_value_mapping(
+                form_copy,
+                schema_props_for_step2,
+                ds_value_map,
+            )
 
         # --- Print summary ---
         summary_lines = []
