@@ -13,9 +13,13 @@ Combines both migration steps into a single command:
       merges multi_column_question groups into array schema properties,
       and removes x-multi-column-group scaffolding annotations.
 
-The two steps run in sequence for each dataset, inside a single
-transaction.atomic() per dataset, so either both succeed or neither is
-committed.
+  Step 3 — Value mapping re-application (optional)
+      When --value-mapping is supplied and a dataset is already fully
+      migrated, the command remaps Examination.data values, schema
+      choices, and form conditions without re-running Steps 1/2.
+
+The steps run inside a single transaction.atomic() per dataset, so either
+all changes for that dataset are committed or none are.
 
 Usage
 -----
@@ -97,9 +101,10 @@ Safety notes
 - --dry-run performs every calculation but never touches the database.
 - Datasets that already have a non-empty data_schema AND whose form
   contains no legacy element types and no scaffolding annotations are
-  skipped entirely.
+  skipped entirely, unless --value-mapping provides mappings for that
+  dataset, in which case a remap-only pass is performed.
 - Datasets with no Column objects and no form elements to migrate are
-  also skipped.
+  also skipped (again, unless --value-mapping applies).
 """
 
 import copy
@@ -206,6 +211,14 @@ def apply_value_mapping_to_choices(
         else:
             new_choices.append(map_data_value(ch, mapping, dataset_name, col_name))
     return new_choices
+
+
+def _dataset_has_value_mapping(
+    mapping: dict[tuple[str, str, str], str],
+    dataset_name: str,
+) -> bool:
+    """Return True if *mapping* contains any entries for *dataset_name*."""
+    return any(ds == dataset_name for ds, _, _ in mapping)
 
 
 # ---------------------------------------------------------------------------
@@ -991,18 +1004,25 @@ class Command(BaseCommand):
         form = dataset.form or {}
         schema_properties = (dataset.data_schema or {}).get("properties") or {}
         needs_step2 = _has_legacy_elements(form) or _has_scaffolding(schema_properties)
+        has_value_mapping = _dataset_has_value_mapping(mapping, dataset.name)
 
         # Skip completely if there is nothing to do.
-        if not has_columns and not needs_step2:
+        if not has_columns and not needs_step2 and not has_value_mapping:
             self.stdout.write(f"  {ds_label} SKIP — nothing to migrate")
             return "skipped"
 
-        if already_has_schema and not needs_step2:
+        if already_has_schema and not needs_step2 and not has_value_mapping:
             self.stdout.write(
                 f"  {ds_label} SKIP — already fully migrated "
                 f"({len(schema_properties)} properties)",
             )
             return "skipped"
+
+        # If the dataset is already migrated but a value mapping is present,
+        # do a value-mapping-only pass to remap Examination.data, schema
+        # choices, and form conditions.
+        if already_has_schema and not needs_step2 and has_value_mapping:
+            return self._remap_dataset_values(dataset, mapping, dry_run)
 
         has_step1_summary = False
         has_step2_summary = False
@@ -1213,6 +1233,112 @@ class Command(BaseCommand):
                         "properties": schema_props_for_step2,
                     }
                     dataset.save(update_fields=["form", "data_schema"])
+
+            self.stdout.write(self.style.SUCCESS("    ✓ committed"))
+            return "migrated"
+
+        except Exception as exc:
+            self.stderr.write(self.style.ERROR(f"    ✗ ERROR for {ds_label}: {exc}"))
+            return "error"
+
+    def _remap_dataset_values(
+        self,
+        dataset: Dataset,
+        mapping: dict[tuple[str, str, str], str],
+        dry_run: bool,
+    ) -> str:
+        """Apply a value mapping to an already-migrated dataset.
+
+        This handles the case where the original migration was run without a
+        value-mapping CSV (or with an incomplete one).  It remaps stored
+        values in Examination.data, updates schema choices, and rewrites
+        form conditions / show_value sources / warnings to use the new
+        stored values.
+
+        Returns 'migrated', 'skipped', or 'error'.
+        """
+        ds_label = f"[{dataset.name}]"
+        schema_properties = (dataset.data_schema or {}).get("properties") or {}
+        if not schema_properties:
+            self.stdout.write(
+                f"  {ds_label} SKIP — value mapping requested but "
+                f"no schema properties exist",
+            )
+            return "skipped"
+
+        ds_value_map: dict[str, dict[str, Any]] = {}
+        for (ds, col, old), new in mapping.items():
+            if ds == dataset.name:
+                ds_value_map.setdefault(col, {})[old] = new
+
+        examinations = list(Examination.objects.filter(dataset=dataset))
+        updated_examinations: list[Examination] = []
+        for exam in examinations:
+            new_data = apply_value_mapping_to_data(
+                copy.deepcopy(exam.data),
+                mapping,
+                dataset.name,
+            )
+            if new_data != exam.data:
+                exam.data = new_data
+                updated_examinations.append(exam)
+
+        new_schema_properties = copy.deepcopy(schema_properties)
+        schema_changed = False
+        for prop_name, prop in new_schema_properties.items():
+            if "choices" in prop:
+                new_choices = apply_value_mapping_to_choices(
+                    prop["choices"],
+                    mapping,
+                    dataset.name,
+                    prop_name,
+                )
+                if new_choices != prop["choices"]:
+                    prop["choices"] = new_choices
+                    schema_changed = True
+
+        form = dataset.form or {}
+        form_copy = copy.deepcopy(form)
+        form_changed = False
+        if form.get("elements"):
+            rewrite_form_code_for_value_mapping(
+                form_copy,
+                new_schema_properties,
+                ds_value_map,
+            )
+            form_changed = form_copy != form
+
+        n_data_changes = len(updated_examinations)
+        if n_data_changes == 0 and not schema_changed and not form_changed:
+            self.stdout.write(
+                f"  {ds_label} SKIP — value mapping already up to date",
+            )
+            return "skipped"
+
+        self.stdout.write(
+            f"  {ds_label} Remap: {n_data_changes} examination(s) | "
+            f"schema choices updated: {schema_changed} | "
+            f"form updated: {form_changed}",
+        )
+
+        if dry_run:
+            return "migrated"
+
+        try:
+            with transaction.atomic():
+                if updated_examinations:
+                    Examination.objects.bulk_update(
+                        updated_examinations,
+                        fields=["data"],
+                        batch_size=500,
+                    )
+                if schema_changed or form_changed:
+                    dataset.data_schema = {
+                        **(dataset.data_schema or {}),
+                        "properties": new_schema_properties,
+                    }
+                    dataset.form = form_copy
+                    dataset.save(update_fields=["data_schema", "form"])
 
             self.stdout.write(self.style.SUCCESS("    ✓ committed"))
             return "migrated"
