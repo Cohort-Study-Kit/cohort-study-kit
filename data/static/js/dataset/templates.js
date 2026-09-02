@@ -9,6 +9,12 @@ import {
   getTextWidthAndHeight,
 } from "./tools"
 
+// String properties with maxLength above this threshold are rendered as
+// <textarea> instead of <input type="text">.  The schema may also carry an
+// explicit "widget": "textarea" hint (set by migrate_to_schema for legacy
+// textarea input_questions whose col_format did not provide a maxLength).
+const TEXTAREA_MAXLENGTH_THRESHOLD = 200
+
 export const editFormTemplate = (value, options) => {
   if (!value.elements || !value.elements.length) {
     return `<ul class="form-menu">
@@ -566,25 +572,45 @@ const renderJsonSchemaForm = (
                 })}
               </select></div>`
               })()
-            : `<div class="col-auto"${
-                displayOptions.width > 0
-                  ? ` style="width: ${displayOptions.width}px;"`
-                  : ""
-              }><input type="text" id="question-${he.encode(
-                path.replaceAll(" ", "-"),
-              )}" value="${he.encode(
-                value || "",
-              )}" class="form-control vTextField form-control" data-path="${he.encode(
-                path,
-              )}"${
-                displayOptions.tabindex > 0
-                  ? ` tabindex="${displayOptions.tabindex + 3}"`
-                  : ""
-              }${
-                displayOptions.placeholder
-                  ? ` placeholder="${he.encode(displayOptions.placeholder)}"`
-                  : ""
-              }></div>`
+            : schema.widget === "textarea" ||
+                (schema.maxLength &&
+                  schema.maxLength > TEXTAREA_MAXLENGTH_THRESHOLD)
+              ? `<div class="col-auto"${
+                  displayOptions.width > 0
+                    ? ` style="width: ${displayOptions.width}px;"`
+                    : ""
+                }><textarea id="question-${he.encode(
+                  path.replaceAll(" ", "-"),
+                )}" class="form-control" data-path="${he.encode(path)}"${
+                  schema.maxLength ? ` maxlength="${schema.maxLength}"` : ""
+                }${
+                  displayOptions.tabindex > 0
+                    ? ` tabindex="${displayOptions.tabindex + 3}"`
+                    : ""
+                }${
+                  displayOptions.placeholder
+                    ? ` placeholder="${he.encode(displayOptions.placeholder)}"`
+                    : ""
+                }>${he.encode(value || "")}</textarea></div>`
+              : `<div class="col-auto"${
+                  displayOptions.width > 0
+                    ? ` style="width: ${displayOptions.width}px;"`
+                    : ""
+                }><input type="text" id="question-${he.encode(
+                  path.replaceAll(" ", "-"),
+                )}" value="${he.encode(
+                  value || "",
+                )}" class="form-control vTextField form-control" data-path="${he.encode(
+                  path,
+                )}"${
+                  displayOptions.tabindex > 0
+                    ? ` tabindex="${displayOptions.tabindex + 3}"`
+                    : ""
+                }${
+                  displayOptions.placeholder
+                    ? ` placeholder="${he.encode(displayOptions.placeholder)}"`
+                    : ""
+                }></div>`
         }`
       break
     case "number":
