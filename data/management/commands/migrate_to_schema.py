@@ -1007,6 +1007,7 @@ class Command(BaseCommand):
         schema_properties = (dataset.data_schema or {}).get("properties") or {}
         needs_step2 = _has_legacy_elements(form) or _has_scaffolding(schema_properties)
         has_value_mapping = _dataset_has_value_mapping(mapping, dataset.name)
+        step1_ran = has_columns and not already_has_schema
 
         # Skip completely if there is nothing to do.
         if not has_columns and not needs_step2 and not has_value_mapping:
@@ -1108,8 +1109,11 @@ class Command(BaseCommand):
                 return "error"
 
             # Apply value mapping to already-migrated Examination.data and to
-            # schema choices when Step 1 was skipped.
-            if mapping:
+            # schema choices when Step 1 was skipped.  When Step 1 ran, the
+            # mapping was already applied there, so re-applying it here would
+            # double-map values whose new stored value coincides with another
+            # old stored value (e.g. sportperweek: 0→1 then 1→2).
+            if mapping and not step1_ran:
                 for exam_data in exam_data_copies:
                     apply_value_mapping_to_data(
                         exam_data,

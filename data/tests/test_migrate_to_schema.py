@@ -147,6 +147,18 @@ class MigrateToSchemaValueMappingTest(TestCase):
             examination=exam,
             value="1",
         )
+        Cell.objects.create(
+            column=col_pks[
+                next(
+                    item["pk"]
+                    for item in data
+                    if item["model"] == "data.column"
+                    and item["fields"]["name"] == "sportperweek"
+                )
+            ],
+            examination=exam,
+            value="0",
+        )
 
         out = StringIO()
         err = StringIO()
@@ -176,4 +188,12 @@ class MigrateToSchemaValueMappingTest(TestCase):
         self.assertEqual(
             dataset.data_schema["properties"]["sportinschool"]["choices"],
             [["Nej", "Yes"], ["Ja", "No"]],
+        )
+        # This column maps old stored values 0..6 to 1..7, so a double
+        # application would shift the value again (0→1→2) and corrupt the
+        # choices list with a duplicate "7".
+        self.assertEqual(exam.data["sportperweek"], "1")
+        self.assertEqual(
+            dataset.data_schema["properties"]["sportperweek"]["choices"],
+            ["1", "2", "3", "4", "5", "6", "7"],
         )
