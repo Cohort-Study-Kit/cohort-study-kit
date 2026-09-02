@@ -540,12 +540,6 @@ const renderJsonSchemaForm = (
                       ? " form-check-inline"
                       : ""
                   }">
-                    <input class="form-check-input" type="radio"
-                      name="${radioName}" value=""
-                      data-path="${he.encode(path)}"
-                      ${displayOptions.tabindex > 0 ? `tabindex="${displayOptions.tabindex + 3}"` : ""}
-                      ${!value || String(value) === "" ? "checked" : ""}>
-                    <label class="form-check-label">---</label>
                   </div></div>`
                 }
                 // Default: dropdown select with empty first option
