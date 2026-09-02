@@ -790,9 +790,11 @@ def migrate_form_in_memory(
                 elem_label,
             )
             new_content = {"type": "data_question", "property": merged_name}
-            for key in ("tabindex", "options_orientation", "hide_text"):
+            for key in ("tabindex", "options_orientation", "hide_text", "placement"):
                 if key in content:
                     new_content[key] = content[key]
+            if not new_content.get("placement"):
+                new_content["placement"] = "below"
             element["content"] = new_content
             report["converted_multi"] += 1
             if merged_name:
