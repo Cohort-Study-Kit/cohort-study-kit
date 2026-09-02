@@ -774,6 +774,13 @@ const renderContentObject = (
         options_orientation: contentObject.options_orientation || "horizontal",
         input_type: contentObject.input_type || "",
       }
+      const schema =
+        renderOptions.data_schema.properties[contentObject.property]
+      if (!schema) {
+        // schema not found, skip rendering
+        returnString = ""
+        break
+      }
       returnString = `<div class="p-2 h-100${
         warning ? " warning" : ""
       } ${placement === "right_of" ? " d-flex justify-content-between" : ""}">
@@ -781,7 +788,7 @@ const renderContentObject = (
               contentObject.property,
               contentObject.property,
               value,
-              renderOptions.data_schema.properties[contentObject.property],
+              schema,
               false,
               displayOptions,
             )}
