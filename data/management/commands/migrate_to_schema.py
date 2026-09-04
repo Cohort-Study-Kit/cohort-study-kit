@@ -93,7 +93,15 @@ For every element (and sub-element) in Dataset.form["elements"]:
     label / html / show_value / data_question
                         → Left untouched.
 
-Also removes x-multi-column-group scaffolding annotations from the schema.
+Also:
+- Removes x-multi-column-group scaffolding annotations from the schema.
+- Translates legacy external values: each form["external_values"] entry
+  {"type": "column", "dataset": d, "column": c} becomes
+  {"type": "property", "dataset": d, "property": c}, and every
+  "column$<dataset>$<column>" variable reference in condition codes,
+  show_value sources, warning tests, and "variables" lists is rewritten
+  to "property$...".  Without this the references would resolve to ""
+  after Step 1 deletes the Cells they used to read from.
 
 Safety notes
 ------------
@@ -103,9 +111,10 @@ Safety notes
   dataset.
 - --dry-run performs every calculation but never touches the database.
 - Datasets that already have a non-empty data_schema AND whose form
-  contains no legacy element types and no scaffolding annotations are
-  skipped entirely, unless --value-mapping provides mappings for that
-  dataset, in which case a remap-only pass is performed.
+  contains no legacy element types, no legacy "column" external values,
+  and no scaffolding annotations are skipped entirely, unless
+  --value-mapping provides mappings for that dataset, in which case a
+  remap-only pass is performed.
 - Datasets with no Column objects and no form elements to migrate are
   also skipped (again, unless --value-mapping applies).
 """
@@ -702,6 +711,72 @@ def _has_legacy_elements(form: dict) -> bool:
     return any(e.get("content", {}).get("type") in legacy for e in _flat_elements(form))
 
 
+def _has_legacy_external_values(form: dict) -> bool:
+    """Return True if any external value entry still uses the legacy "column" type."""
+    return any(
+        entry.get("type") == "column"
+        for entry in (form or {}).get("external_values") or []
+    )
+
+
+def _rewrite_external_value_prefix(code_holder: dict) -> None:
+    """
+    Rewrite legacy "column$<dataset>$<column>" external value references to
+    "property$<dataset>$<column>" in a condition/show_value/warning dict.
+
+    Both the code string ("code", "source" or "test" key) and the parallel
+    "variables" list are updated in place.
+    """
+    for key in ("code", "source", "test"):
+        value = code_holder.get(key)
+        if isinstance(value, str) and "column$" in value:
+            code_holder[key] = value.replace("column$", "property$")
+    variables = code_holder.get("variables")
+    if variables:
+        code_holder["variables"] = [
+            (
+                variable.replace("column$", "property$")
+                if isinstance(variable, str)
+                else variable
+            )
+            for variable in variables
+        ]
+
+
+def _migrate_external_values(form: dict) -> int:
+    """
+    Translate legacy "column" external values to "property" ones (Step 2).
+
+    Each entry {"type": "column", "dataset": d, "column": c} becomes
+    {"type": "property", "dataset": d, "property": c}, and every
+    "column$<dataset>$<column>" variable reference in condition codes,
+    show_value sources, warning tests, and the accompanying "variables"
+    lists is rewritten to "property$<dataset>$<column>".  References are
+    rewritten even when no matching external value entry exists, since the
+    legacy "column$" values can no longer be resolved once Cells are gone.
+
+    Mutates *form* in place.  Returns the number of entries converted.
+    """
+    converted = 0
+    for entry in form.get("external_values") or []:
+        if entry.get("type") != "column":
+            continue
+        entry["type"] = "property"
+        entry["property"] = entry.pop("column")
+        converted += 1
+
+    for element in _flat_elements(form):
+        for condition in element.get("conditions") or []:
+            _rewrite_external_value_prefix(condition)
+        content = element.get("content") or {}
+        if content.get("type") == "show_value":
+            _rewrite_external_value_prefix(content)
+    for warning in form.get("warnings") or []:
+        _rewrite_external_value_prefix(warning)
+
+    return converted
+
+
 def _has_scaffolding(schema_properties: dict) -> bool:
     """Return True if any schema property still carries an x-multi-column-group key."""
     return any("x-multi-column-group" in prop for prop in schema_properties.values())
@@ -728,6 +803,7 @@ def migrate_form_in_memory(
         converted_input        int
         converted_single       int
         converted_multi        int
+        external_values_converted  int
         merged_property_names  list[str]  — new array property names
         removed_schema_keys    list[str]  — old per-option column keys removed
         scaffolding_removed    int
@@ -736,6 +812,7 @@ def migrate_form_in_memory(
         "converted_input": 0,
         "converted_single": 0,
         "converted_multi": 0,
+        "external_values_converted": 0,
         "merged_property_names": [],
         "removed_schema_keys": [],
         "scaffolding_removed": 0,
@@ -822,6 +899,9 @@ def migrate_form_in_memory(
         if "x-multi-column-group" in prop:
             del prop["x-multi-column-group"]
             report["scaffolding_removed"] += 1
+
+    # Translate legacy "column" external values to "property".
+    report["external_values_converted"] = _migrate_external_values(form)
 
     return report
 
@@ -1021,7 +1101,11 @@ class Command(BaseCommand):
         already_has_schema = bool((dataset.data_schema or {}).get("properties"))
         form = dataset.form or {}
         schema_properties = (dataset.data_schema or {}).get("properties") or {}
-        needs_step2 = _has_legacy_elements(form) or _has_scaffolding(schema_properties)
+        needs_step2 = (
+            _has_legacy_elements(form)
+            or _has_scaffolding(schema_properties)
+            or _has_legacy_external_values(form)
+        )
         has_value_mapping = _dataset_has_value_mapping(mapping, dataset.name)
         step1_ran = has_columns and not already_has_schema
 
@@ -1100,7 +1184,7 @@ class Command(BaseCommand):
         else:
             schema_props_for_step2 = copy.deepcopy(schema_properties)
 
-        if needs_step2 and form.get("elements"):
+        if needs_step2 and form:
             # Load examinations for Step 2 data mutation (multi_column merges).
             # If Step 1 already loaded them, reuse those objects; their data
             # has already been updated to the new schema values.
@@ -1162,6 +1246,10 @@ class Command(BaseCommand):
             if step2_report["scaffolding_removed"]:
                 parts.append(
                     f"scaffolding×{step2_report['scaffolding_removed']} removed",
+                )
+            if step2_report["external_values_converted"]:
+                parts.append(
+                    f"external_values×{step2_report['external_values_converted']} converted",
                 )
             _step2_summary = "Step 2: " + (
                 " | ".join(parts) if parts else "nothing converted"

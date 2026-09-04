@@ -1,5 +1,6 @@
 """Tests for the migrate_to_schema management command."""
 
+import copy
 import json
 import lzma
 import subprocess
@@ -329,3 +330,151 @@ class MigrateToSchemaTypeResolutionTest(TestCase):
         # Step 2 should have converted the legacy elements to data_question.
         types = [e["content"]["type"] for e in dataset.form["elements"]]
         self.assertEqual(types, ["data_question"] * 4)
+
+
+class MigrateToSchemaExternalValuesTest(TestCase):
+    """Test translation of legacy "column" external values (Step 2)."""
+
+    fixtures = ["base/fixtures/test_database.json.xz"]
+
+    LEGACY_EXTERNAL_VALUES = [
+        {"type": "column", "dataset": "other_ds", "column": "some_field"},
+        {"type": "diagnose", "code": "J45"},
+    ]
+
+    def _legacy_form(self):
+        return {
+            "elements": [
+                {
+                    "label": "Question",
+                    "content": {
+                        "type": "input_question",
+                        "column": "own_field",
+                        "input_type": "text_input",
+                    },
+                    "conditions": [
+                        {
+                            "code": "column$other_ds$some_field === 1",
+                            "variables": ["column$other_ds$some_field"],
+                        },
+                    ],
+                    "sub_elements": [],
+                },
+                {
+                    "label": "Doubled",
+                    "content": {
+                        "type": "show_value",
+                        "source": "column$other_ds$some_field * 2",
+                        "variables": ["column$other_ds$some_field"],
+                    },
+                    "sub_elements": [],
+                },
+            ],
+            "warnings": [
+                {
+                    "text": "Too high",
+                    "test": "column$other_ds$some_field > 3",
+                    "variables": ["column$other_ds$some_field"],
+                },
+            ],
+            "external_values": copy.deepcopy(self.LEGACY_EXTERNAL_VALUES),
+        }
+
+    def _assert_external_values_translated(self, dataset):
+        dataset.refresh_from_db()
+        external_values = dataset.form["external_values"]
+        self.assertEqual(
+            external_values[0],
+            {"type": "property", "dataset": "other_ds", "property": "some_field"},
+        )
+        # Non-column external values are left untouched.
+        self.assertEqual(external_values[1], {"type": "diagnose", "code": "J45"})
+
+        condition = dataset.form["elements"][0]["conditions"][0]
+        self.assertEqual(condition["code"], "property$other_ds$some_field === 1")
+        self.assertEqual(condition["variables"], ["property$other_ds$some_field"])
+
+        show_value = dataset.form["elements"][1]["content"]
+        self.assertEqual(show_value["source"], "property$other_ds$some_field * 2")
+        self.assertEqual(
+            show_value["variables"],
+            ["property$other_ds$some_field"],
+        )
+
+        warning = dataset.form["warnings"][0]
+        self.assertEqual(warning["test"], "property$other_ds$some_field > 3")
+        self.assertEqual(warning["variables"], ["property$other_ds$some_field"])
+
+    def test_external_values_translated_during_full_migration(self):
+        """Legacy external values are translated together with Step 1 + Step 2."""
+        existing_exam = Examination.objects.first()
+        self.assertIsNotNone(existing_exam)
+
+        dataset = Dataset.objects.create(
+            name="external_values_test",
+            title="External Values Test",
+            cohort=existing_exam.dataset.cohort,
+            form=self._legacy_form(),
+            data_schema={},
+            author=existing_exam.dataset.author,
+        )
+        column = Column.objects.create(
+            dataset=dataset,
+            name="own_field",
+            title="own_field",
+            col_format="VARCHAR2(30)",
+        )
+        exam = Examination.objects.create(
+            dataset=dataset,
+            visit=existing_exam.visit,
+            startdate="2023-01-01",
+            status="none",
+        )
+        Cell.objects.create(column=column, examination=exam, value="abc")
+
+        out = StringIO()
+        err = StringIO()
+        call_command(
+            "migrate_to_schema",
+            "--dataset",
+            "external_values_test",
+            stdout=out,
+            stderr=err,
+        )
+
+        self.assertEqual(err.getvalue(), "", f"stdout: {out.getvalue()}")
+        self.assertIn("committed", out.getvalue())
+        self.assertIn("external_values×1 converted", out.getvalue())
+        self._assert_external_values_translated(dataset)
+
+    def test_external_values_translated_for_already_migrated_dataset(self):
+        """Datasets with a finished schema but legacy external values are not skipped."""
+        existing_exam = Examination.objects.first()
+        self.assertIsNotNone(existing_exam)
+
+        dataset = Dataset.objects.create(
+            name="external_values_test",
+            title="External Values Test",
+            cohort=existing_exam.dataset.cohort,
+            form=self._legacy_form(),
+            data_schema={
+                "type": "object",
+                "properties": {"own_field": {"type": "string"}},
+            },
+            author=existing_exam.dataset.author,
+        )
+
+        out = StringIO()
+        err = StringIO()
+        call_command(
+            "migrate_to_schema",
+            "--dataset",
+            "external_values_test",
+            stdout=out,
+            stderr=err,
+        )
+
+        self.assertEqual(err.getvalue(), "", f"stdout: {out.getvalue()}")
+        self.assertIn("committed", out.getvalue())
+        self.assertNotIn("SKIP", out.getvalue())
+        self._assert_external_values_translated(dataset)
