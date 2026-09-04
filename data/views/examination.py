@@ -85,7 +85,7 @@ def retrieve_external_values(examination, startdate):
             ).first()
             value = ""
             if other_examination:
-                value = other_examination.data[external_value["property"]]
+                value = other_examination.data.get(external_value["property"], None)
             dataset_name = external_value["dataset"]
             property_name = external_value["property"]
             external_values[f"property${dataset_name}${property_name}"] = value
