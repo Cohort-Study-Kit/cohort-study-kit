@@ -541,11 +541,7 @@ const renderJsonSchemaForm = (
                       <label class="form-check-label">${he.encode(label)}</label>
                     </div>`
                     })
-                    .join("")}<div class="form-check${
-                    displayOptions.options_orientation === "horizontal"
-                      ? " form-check-inline"
-                      : ""
-                  }">
+                    .join("")}
                   </div></div>`
                 }
                 // Default: dropdown select with empty first option
@@ -803,7 +799,7 @@ const renderContentObject = (
       }
       returnString = `<div class="p-2 h-100${
         warning ? " warning" : ""
-      } ${placement === "right_of" ? " d-flex justify-content-between" : ""}">
+      } ${placement === "right_of" ? " d-flex justify-content-between" : " d-block"}">
             ${renderJsonSchemaForm(
               contentObject.property,
               contentObject.property,

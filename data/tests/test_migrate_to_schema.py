@@ -197,3 +197,135 @@ class MigrateToSchemaValueMappingTest(TestCase):
             dataset.data_schema["properties"]["sportperweek"]["choices"],
             ["1", "2", "3", "4", "5", "6", "7"],
         )
+
+
+class MigrateToSchemaTypeResolutionTest(TestCase):
+    """Test schema type resolution for input_question columns."""
+
+    fixtures = ["base/fixtures/test_database.json.xz"]
+
+    def _legacy_element(self, label, content):
+        return {"label": label, "content": content, "sub_elements": []}
+
+    def test_input_question_numeric_col_format_wins(self):
+        """input_question columns honor numeric col_format; others stay string."""
+        existing_exam = Examination.objects.first()
+        self.assertIsNotNone(existing_exam)
+
+        form = {
+            "elements": [
+                self._legacy_element(
+                    "Minutes",
+                    {
+                        "type": "input_question",
+                        "column": "minutes_field",
+                        "input_type": "text_input",
+                    },
+                ),
+                self._legacy_element(
+                    "Ratio",
+                    {
+                        "type": "input_question",
+                        "column": "ratio_field",
+                        "input_type": "text_input",
+                    },
+                ),
+                self._legacy_element(
+                    "Comment",
+                    {
+                        "type": "input_question",
+                        "column": "comment_field",
+                        "input_type": "text_input",
+                    },
+                ),
+                self._legacy_element(
+                    "Choice",
+                    {
+                        "type": "single_column_question",
+                        "column": "choice_field",
+                        "input_type": "select",
+                        "options": [
+                            {"text": "Yes", "db_value": "1"},
+                            {"text": "No", "db_value": "0"},
+                        ],
+                    },
+                ),
+            ],
+        }
+        dataset = Dataset.objects.create(
+            name="type_resolution_test",
+            title="Type Resolution Test",
+            cohort=existing_exam.dataset.cohort,
+            form=form,
+            data_schema={},
+            author=existing_exam.dataset.author,
+        )
+        columns = {}
+        for name, col_format in [
+            ("minutes_field", "NUMBER(10,0)"),
+            ("ratio_field", "NUMBER(10,2)"),
+            ("comment_field", "VARCHAR2(30)"),
+            ("choice_field", "NUMBER(1,0)"),
+        ]:
+            columns[name] = Column.objects.create(
+                dataset=dataset,
+                name=name,
+                title=name,
+                col_format=col_format,
+            )
+
+        exam = Examination.objects.create(
+            dataset=dataset,
+            visit=existing_exam.visit,
+            startdate="2023-01-01",
+            status="none",
+        )
+        for name, value in [
+            ("minutes_field", "45"),
+            ("ratio_field", "1.5"),
+            ("comment_field", "hello"),
+            ("choice_field", "1"),
+        ]:
+            Cell.objects.create(
+                column=columns[name],
+                examination=exam,
+                value=value,
+            )
+
+        out = StringIO()
+        err = StringIO()
+        call_command(
+            "migrate_to_schema",
+            "--dataset",
+            "type_resolution_test",
+            stdout=out,
+            stderr=err,
+        )
+
+        self.assertEqual(err.getvalue(), "", f"stdout: {out.getvalue()}")
+        self.assertIn("committed", out.getvalue())
+
+        exam.refresh_from_db()
+        dataset.refresh_from_db()
+        properties = dataset.data_schema["properties"]
+
+        self.assertEqual(properties["minutes_field"]["type"], "integer")
+        self.assertEqual(properties["ratio_field"]["type"], "number")
+        self.assertEqual(properties["comment_field"]["type"], "string")
+        # single_column_question keeps string type even with numeric col_format.
+        self.assertEqual(properties["choice_field"]["type"], "string")
+        self.assertEqual(
+            properties["choice_field"]["choices"],
+            [["Yes", "1"], ["No", "0"]],
+        )
+
+        self.assertEqual(exam.data["minutes_field"], 45)
+        self.assertIsInstance(exam.data["minutes_field"], int)
+        self.assertEqual(exam.data["ratio_field"], 1.5)
+        self.assertIsInstance(exam.data["ratio_field"], float)
+        self.assertEqual(exam.data["comment_field"], "hello")
+        self.assertEqual(exam.data["choice_field"], "1")
+
+        # Step 2 should have converted the legacy elements to data_question.
+        types = [e["content"]["type"] for e in dataset.form["elements"]]
+        self.assertEqual(types, ["data_question"] * 4)

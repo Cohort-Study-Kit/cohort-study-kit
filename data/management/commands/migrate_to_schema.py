@@ -42,9 +42,12 @@ For each Dataset that has Column objects and no existing data_schema:
     Pass A — form-authoritative columns:
         single_column_question  → type "string" + choices list from the
                                   form's option db_values.
-        input_question          → type "string" regardless of col_format,
-                                  because both text_input and textarea are
-                                  unrestricted HTML text fields.
+        input_question          → type "string", unless col_format reliably
+                                  says numeric (NUMBER(p,0)/INT → "integer",
+                                  NUMBER(p,s>0) → "number") — a numeric
+                                  col_format means the unrestricted text
+                                  input stored numbers that show_value
+                                  calculations rely on.
         multi_column_question   → type "string" + x-multi-column-group
                                   annotation (scaffolding consumed by Step 2).
 
@@ -480,12 +483,14 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
         precedence over the Column.title when building the schema.
 
     input_question (both text_input and textarea)
-        type "string"
-        Both variants render an unrestricted HTML text field; there is no
-        guarantee the stored value is numeric even if col_format says NUMBER.
-        col_format is ignored entirely for type.
-        If the element has a "label", it is stored as "title" and takes
-        precedence over the Column.title when building the schema.
+        type "string", unless col_format is reliably numeric —
+        NUMBER(p,0)/INT → "integer", NUMBER(p,s>0) → "number".
+        Both variants render an unrestricted HTML text field, so without a
+        numeric col_format there is no guarantee the stored value is numeric.
+        A numeric col_format is authoritative because the form's show_value
+        calculations (totals, averages) break when numbers are stored as
+        strings.  If the element has a "label", it is stored as "title" and
+        takes precedence over the Column.title when building the schema.
 
     multi_column_question options
         type "string"
@@ -498,6 +503,8 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
     overrides: dict[str, dict] = {}
     form = dataset.form or {}
     elements = _flat_elements(form)
+
+    col_formats = {col.name: col.col_format or "" for col in dataset.column_set.all()}
 
     multi_group_index = 0
 
@@ -534,6 +541,15 @@ def _build_form_type_overrides(dataset: Dataset) -> dict[str, dict]:
             if col_name:
                 col_name = str(col_name)
                 input_override: dict = {"type": "string"}
+                # A numeric col_format is authoritative: NUMBER(p,0)/INT →
+                # "integer", NUMBER(p,s>0) → "number".  The form's show_value
+                # calculations (totals, averages) break when numbers are
+                # stored as strings, so honor the declared numeric type.
+                col_type = col_format_to_schema_attrs(
+                    col_formats.get(col_name, ""),
+                ).get("type")
+                if col_type in ("integer", "number"):
+                    input_override["type"] = col_type
                 label = elem.get("label")
                 if label:
                     input_override["title"] = label
