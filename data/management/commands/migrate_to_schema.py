@@ -63,6 +63,11 @@ For each Dataset that has Column objects and no existing data_schema:
     and used by the JS renderer to automatically select textarea vs
     text input (see TEXTAREA_MAXLENGTH_THRESHOLD in templates.js).
 
+    Overview visibility: if at least one Column has a display_order, every
+    Column without one is marked "x-hidden": True in its schema property —
+    the legacy equivalent of get_cells ignoring unordered columns.  Only
+    the overview (get_cells) honours this flag; forms render all properties.
+
 2.  For each Examination, builds a data dict from its Cell values, coercing
     each value to the correct Python type (int / float / str) as determined
     by the schema.  Empty-string cells are omitted.
@@ -597,11 +602,15 @@ def build_data_schema(dataset: Dataset) -> dict:
         but preserves maxLength from col_format so the renderer knows the
         field's length even for form-referenced columns.
     3.  Add title and description from the Column object.
+    4.  Mirror the legacy overview visibility rule: if at least one column
+        has a display_order, every column without one gets "x-hidden": True
+        (get_cells hides such properties from the overview).
     """
     form_overrides = _build_form_type_overrides(dataset)
 
     # Preserve column order: explicit display_order first, then by insertion id.
     columns = list(dataset.column_set.order_by("display_order", "id"))
+    any_display_order = any(col.display_order is not None for col in columns)
 
     properties: dict[str, dict] = {}
 
@@ -624,6 +633,9 @@ def build_data_schema(dataset: Dataset) -> dict:
             description = ""
         if description:
             prop["description"] = description
+
+        if any_display_order and col.display_order is None:
+            prop["x-hidden"] = True
 
         properties[col.name] = prop
 

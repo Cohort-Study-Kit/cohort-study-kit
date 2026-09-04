@@ -41,9 +41,7 @@ def get_cells(request, copsac_id, ds_name):
     cohort = proband.cohort
     ds = Dataset.objects.filter(name=ds_name.lower(), cohort=cohort).first()
 
-    if (
-        ds.data_schema and "properties" in ds.data_schema
-    ):  # No data schema, we use cell data instead
+    if ds.data_schema and "properties" in ds.data_schema:
         # There is a data schema. We use data from the Examination.data.
         examination_filter = {
             "dataset_id": ds.id,
@@ -70,6 +68,13 @@ def get_cells(request, copsac_id, ds_name):
             "Start date",
             "Comments",
         ]
+        properties = {
+            name: definition
+            for name, definition in ds.data_schema["properties"].items()
+            # "x-hidden" properties (unordered legacy columns) are excluded
+            # from the overview, mirroring the old display_order rule below.
+            if not definition.get("x-hidden")
+        }
         for examination in examinations:
             record = {
                 "ID": examination.id,
@@ -82,7 +87,6 @@ def get_cells(request, copsac_id, ds_name):
                 "Comments": examination.comments,
             }
             records.append(record)
-            properties = examination.dataset.data_schema["properties"]
             for name in properties:
                 # Not all Examinations have data for all data schemas.
                 # We need to check if the data exists before accessing it.
@@ -98,6 +102,7 @@ def get_cells(request, copsac_id, ds_name):
                 if title not in headings:
                     headings.append(title)
     else:
+        # No data schema, we use cell data instead
         cell_filter = {
             "examination__dataset_id": ds.id,
             "examination__visit__proband__copsac_id": copsac_id,

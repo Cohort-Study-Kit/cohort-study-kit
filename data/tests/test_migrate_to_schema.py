@@ -478,3 +478,76 @@ class MigrateToSchemaExternalValuesTest(TestCase):
         self.assertIn("committed", out.getvalue())
         self.assertNotIn("SKIP", out.getvalue())
         self._assert_external_values_translated(dataset)
+
+
+class MigrateToSchemaHiddenTest(TestCase):
+    """Test the "x-hidden" schema flag mirroring the legacy display_order rule."""
+
+    fixtures = ["base/fixtures/test_database.json.xz"]
+
+    def _migrate_dataset(self, name, col_specs):
+        existing_exam = Examination.objects.first()
+        self.assertIsNotNone(existing_exam)
+        dataset = Dataset.objects.create(
+            name=name,
+            title=name,
+            cohort=existing_exam.dataset.cohort,
+            form={
+                "elements": [
+                    {
+                        "label": col_name,
+                        "content": {
+                            "type": "input_question",
+                            "column": col_name,
+                            "input_type": "text_input",
+                        },
+                        "sub_elements": [],
+                    }
+                    for col_name, _ in col_specs
+                ],
+            },
+            data_schema={},
+            author=existing_exam.dataset.author,
+        )
+        for col_name, display_order in col_specs:
+            Column.objects.create(
+                dataset=dataset,
+                name=col_name,
+                title=col_name,
+                col_format="VARCHAR2(30)",
+                display_order=display_order,
+            )
+
+        out = StringIO()
+        err = StringIO()
+        call_command(
+            "migrate_to_schema",
+            "--dataset",
+            name,
+            stdout=out,
+            stderr=err,
+        )
+        self.assertEqual(err.getvalue(), "", f"stdout: {out.getvalue()}")
+        self.assertIn("committed", out.getvalue())
+        dataset.refresh_from_db()
+        return dataset
+
+    def test_columns_without_display_order_are_hidden(self):
+        """When any column has a display_order, unordered columns get x-hidden."""
+        dataset = self._migrate_dataset(
+            "hidden_test",
+            [("ordered_field", 1), ("unordered_field", None)],
+        )
+        properties = dataset.data_schema["properties"]
+        self.assertNotIn("x-hidden", properties["ordered_field"])
+        self.assertIs(properties["unordered_field"].get("x-hidden"), True)
+
+    def test_no_display_order_means_nothing_hidden(self):
+        """Without any display_order, no property is hidden."""
+        dataset = self._migrate_dataset(
+            "hidden_test",
+            [("field_one", None), ("field_two", None)],
+        )
+        properties = dataset.data_schema["properties"]
+        self.assertNotIn("x-hidden", properties["field_one"])
+        self.assertNotIn("x-hidden", properties["field_two"])
