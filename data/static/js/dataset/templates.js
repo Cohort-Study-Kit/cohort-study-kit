@@ -541,7 +541,7 @@ const renderJsonSchemaForm = (
                       <label class="form-check-label">${he.encode(label)}</label>
                     </div>`
                     })
-                    .join("")}</div>`
+                    .join("")}${displayOptions.width > 0 ? `</div>` : ""}</div>`
                 }
                 // Default: dropdown select with empty first option
                 return `<div class="col-auto"${
