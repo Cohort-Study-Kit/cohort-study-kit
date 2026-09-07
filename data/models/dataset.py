@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db import models
 from django.utils.safestring import mark_safe
 from django_jsonform.models.fields import JSONField
-from django_mysql.models import QuerySet
 from simple_history.models import HistoricalRecords
 
 from .examination import Examination
@@ -167,85 +166,6 @@ class Dataset(models.Model):
 
     # Django-simple-history package
     history = HistoricalRecords(table_name="zz_data_dataset")
-
-
-class Column(models.Model):
-    objects = QuerySet.as_manager()
-    # Foreign Keys
-    dataset = models.ForeignKey(
-        "data.Dataset",
-        on_delete=models.CASCADE,
-        null=True,
-    )
-
-    display_order = models.IntegerField(
-        default=None,
-        blank=True,
-        null=True,
-        help_text="If specified, the order in which the column is displayed in the frontend.",
-    )
-
-    # Char
-    name = models.SlugField(
-        max_length=50,
-        help_text="Name of the column, keep the dataset in mind when naming",
-    )
-    title = models.CharField(
-        default="",
-        blank=True,
-        max_length=50,
-        help_text="Human readable name or abbreviation, etc.",
-    )
-    org_name = models.CharField(
-        default="",
-        blank=True,
-        max_length=100,
-        help_text="Original name of data",
-    )
-    col_format = models.CharField(
-        default="",
-        blank=True,
-        max_length=50,
-        help_text="Format of data in given column",
-    )
-    caption_column = models.CharField(
-        default="",
-        blank=True,
-        max_length=100,
-        help_text="Very short description of this column",
-    )
-    description = models.CharField(
-        default="",
-        blank=True,
-        max_length=1000,
-        help_text="Description",
-    )
-    unit = models.CharField(
-        default="",
-        blank=True,
-        max_length=50,
-        help_text="Unit data in column",
-    )
-    is_meta = models.BooleanField(
-        default=None,
-        blank=True,
-        null=True,
-        help_text="Specifies if the data is meta data",
-    )
-
-    def __str__(self):
-        return self.name.strip() or "[Empty string]"
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["dataset", "name"],
-                name="unique_dataset_column",
-            ),
-        ]
-
-    # Django-simple-history package
-    history = HistoricalRecords(table_name="zz_data_column")
 
 
 class DatasetVisitTypeRel(models.Model):

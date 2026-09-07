@@ -3,7 +3,7 @@ from copy import copy
 
 from django import forms
 
-from .models import Column, Dataset
+from .models import Dataset
 
 
 class DatasetFormWidget(forms.Widget):
@@ -38,28 +38,17 @@ class DatasetFormWidget(forms.Widget):
         options = copy(self.options)
         context["widget"]["width"] = self.width
         context["widget"]["height"] = self.height
-        column_query = Column.objects.order_by("dataset__name", "name")
         properties_query = Dataset.objects.filter(data_schema__properties__isnull=False)
         if hasattr(self, "instance") and self.instance.id:
             options["dataset_name"] = self.instance.name
             options["data_schema"] = self.instance.data_schema
-            options["columns"] = list(
-                self.instance.column_set.all().values_list(
-                    "name",
-                    "title",
-                    "col_format",
-                ),
-            )
-            column_query = column_query.exclude(dataset=self.instance)
+            options["columns"] = []
             properties_query = properties_query.exclude(id=self.instance.id)
         else:
             options["dataset_name"] = ""
             options["data_schema"] = {}
             options["columns"] = []
-        options["external_columns"] = [
-            {"dataset": column["dataset__name"], "column": column["name"]}
-            for column in column_query.values("dataset__name", "name")
-        ]
+        options["external_columns"] = []
         options["external_properties"] = [
             {
                 "dataset": ds["name"],

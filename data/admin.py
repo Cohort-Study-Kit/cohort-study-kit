@@ -4,8 +4,6 @@ from csvexport.actions import csvexport
 from django import forms
 from django.contrib import admin, messages
 from django.db import transaction
-from django.db.models import CharField, F
-from django.forms import TextInput
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -21,8 +19,6 @@ from base.models import Proband
 from config.backoffice import backoffice
 
 from .models import (
-    Cell,
-    Column,
     Dataset,
     DatasetVisitTypeRel,
     Examination,
@@ -38,26 +34,6 @@ csvexport.short_description = "Export as CSV"
 admin.site.add_action(csvexport)
 
 backoffice.add_action(csvexport)
-
-
-@admin.register(Column)
-class ColumnAdmin(AdminDynPaginationMixin, SimpleHistoryAdmin):
-    list_display = ["dataset", "name"]
-    search_fields = ["name"]
-    list_filter = ["dataset"]
-
-
-class ColumnBackoffice(
-    AdminDynPaginationMixin,
-    BackOfficeAdminMixin,
-    SimpleHistoryAdmin,
-):
-    list_display = ["dataset", "name"]
-    search_fields = ["name"]
-    list_filter = ["dataset"]
-
-
-backoffice.register(Column, ColumnBackoffice)
 
 
 class DatasetVisitTypeRelInline(admin.TabularInline):
@@ -216,20 +192,6 @@ class HelpDataBackoffice(
 backoffice.register(HelpData, HelpDataBackoffice)
 
 
-class ColumnInline(admin.TabularInline):
-    model = Column
-    ordering = [F("display_order").asc(nulls_last=True), "name"]
-    formfield_overrides = {
-        CharField: {"widget": TextInput(attrs={"size": "15"})},
-    }
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields["display_order"].widget.attrs["style"] = "width: 30px;"
-        formset.form.base_fields["name"].widget.attrs["style"] = "width: 150px;"
-        return formset
-
-
 class JSONEditorSchemaReplacementWidget(JSONEditorWidget):
     def __init__(
         self,
@@ -300,7 +262,6 @@ class DatasetAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     search_fields = ["name"]
     list_filter = ["cohort"]
     inlines = [
-        ColumnInline,
         DatasetVisitTypeRelInline,
     ]
     actions = [
@@ -312,14 +273,9 @@ class DatasetAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
     def duplicate_dataset(self, request, queryset):
         counter = 0
         for dataset in queryset:
-            columns = list(dataset.column_set.all())
             dataset.id = None
             dataset.name = f"Copy of {dataset.name}"
             dataset.save()
-            for column in columns:
-                column.dataset_id = dataset.id
-                column.id = None
-                column.save()
             counter += 1
         self.message_user(
             request,
@@ -356,7 +312,6 @@ class DatasetBackoffice(
     search_fields = ["name"]
     list_filter = ["cohort"]
     inlines = [
-        ColumnInline,
         DatasetVisitTypeRelInline,
     ]
     actions = [
@@ -368,14 +323,9 @@ class DatasetBackoffice(
     def duplicate_dataset(self, request, queryset):
         counter = 0
         for dataset in queryset:
-            columns = list(dataset.column_set.all())
             dataset.id = None
             dataset.name = f"Copy of {dataset.name}"
             dataset.save()
-            for column in columns:
-                column.dataset_id = dataset.id
-                column.id = None
-                column.save()
             counter += 1
         self.message_user(
             request,
@@ -388,43 +338,12 @@ class DatasetBackoffice(
             messages.SUCCESS,
         )
 
-    def save_formset(self, request, form, formset, change):
-        super().save_formset(request, form, formset, change)
-        obj = form.instance
-        if obj.pk:
-            for order, column in enumerate(
-                obj.column_set.filter(display_order__isnull=False).order_by(
-                    "display_order",
-                ),
-            ):
-                if column.display_order != (order + 1):
-                    column.display_order = order + 1
-                    column.save()
-
     def save_model(self, request, obj, form, change):
         obj.name = obj.name.lower().strip()
         super().save_model(request, obj, form, change)
 
 
 backoffice.register(Dataset, DatasetBackoffice)
-
-
-@admin.register(Cell)
-class CellAdmin(AdminDynPaginationMixin, admin.ModelAdmin):
-    search_fields = ["column__name"]
-    list_select_related = ["examination", "column"]
-    list_display = ["examination", "column", "value"]
-    raw_id_fields = ["examination"]
-
-
-class CellBackoffice(AdminDynPaginationMixin, BackOfficeAdminMixin, admin.ModelAdmin):
-    search_fields = ["column__name"]
-    list_select_related = ["examination", "column"]
-    list_display = ["examination", "column", "value"]
-    raw_id_fields = ["examination"]
-
-
-backoffice.register(Cell, CellBackoffice)
 
 
 class ExaminationBackOfficeForm(forms.ModelForm):
@@ -437,11 +356,6 @@ class ExaminationBackOfficeForm(forms.ModelForm):
         model = Examination
         widgets = {"data": JSONEditorSchemaReplacementWidget}
         fields = "__all__"
-
-
-class CellInline(admin.TabularInline):
-    model = Cell
-    ordering = [F("column__display_order").asc(nulls_last=True), "column__name"]
 
 
 class ExaminationBackOffice(
@@ -463,9 +377,6 @@ class ExaminationBackOffice(
     raw_id_fields = [
         "visit",
         "dataset",
-    ]
-    inlines = [
-        CellInline,
     ]
     list_filter = [("visit__proband__copsac_id", ProbandFilter), "dataset"]
 
@@ -516,9 +427,6 @@ class ExaminationAdmin(AdminDynPaginationMixin, SoftDeleteAdminMixin, admin.Mode
     raw_id_fields = [
         "visit",
         "dataset",
-    ]
-    inlines = [
-        CellInline,
     ]
     list_filter = [("visit__proband__copsac_id", ProbandFilter), "dataset"]
 

@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET
 from base.models import Proband
 from healthcare_records.models import Diagnosis, Medication
 
-from ..models import Cell, Column, Dataset, Examination, Visit
+from ..models import Dataset, Examination, Visit
 from .helpers import can_moderate
 
 logger = logging.getLogger(__name__)
@@ -70,11 +70,7 @@ def retrieve_external_values(examination, startdate):
             ).first()
             value = ""
             if other_examination:
-                cell = other_examination.cell_set.filter(
-                    column__name=external_value["column"],
-                ).first()
-                if cell:
-                    value = cell.value
+                value = other_examination.data.get(external_value["column"], "")
             dataset_name = external_value["dataset"]
             column_name = external_value["column"]
             external_values[f"column${dataset_name}${column_name}"] = value
@@ -132,31 +128,15 @@ def examination_form(
     )
     if not examination:
         raise Http404("Examination does not exist")
-    latest_examination = None
-    if (
-        examination.dataset.data_schema == {}
-    ):  # If no data schema, we use columns instead
-        latest_cell = (
-            Cell.objects.filter(
-                (~Q(value__exact="") & Q(value__isnull=False)),
-                examination__dataset=examination.dataset,
-                examination__visit__proband=examination.visit.proband,
-            )
-            .order_by("-examination__startdate")
-            .first()
+    latest_examination = (
+        Examination.objects.filter(
+            (~Q(data__exact={})),
+            dataset=examination.dataset,
+            visit__proband=examination.visit.proband,
         )
-        if latest_cell:
-            latest_examination = latest_cell.examination
-    else:
-        latest_examination = (
-            Examination.objects.filter(
-                (~Q(data__exact={})),
-                dataset=examination.dataset,
-                visit__proband=examination.visit.proband,
-            )
-            .order_by("-startdate")
-            .first()
-        )
+        .order_by("-startdate")
+        .first()
+    )
     if not examination:
         raise Http404("Examination does not exist")
     title = (
@@ -185,13 +165,6 @@ def examination_form(
             {
                 "use_finishdate": examination.dataset.use_finishdate,
                 "status_choices": examination.dataset.status_choices,
-                "columns": {
-                    column.name: {
-                        "format": column.col_format,
-                        "title": column.title,
-                    }
-                    for column in examination.dataset.column_set.all()
-                },
                 "data_schema": examination.dataset.data_schema,
                 "external_values": retrieve_external_values(
                     examination,
@@ -204,14 +177,6 @@ def examination_form(
             {
                 "id": examination.id,
                 "data": examination.data,
-                "column_data": {
-                    column.name: getattr(
-                        examination.cell_set.filter(column=column).first(),
-                        "value",
-                        "",
-                    )
-                    for column in examination.dataset.column_set.all()
-                },
                 "startdate": examination.startdate,
                 "finishdate": examination.finishdate,
                 "status": examination.status,
@@ -251,19 +216,6 @@ def save_examination(
     examination.exceptional_values = examination_data["exceptional_values"]
     examination.data = examination_data["data"]
     examination.save()
-    for column_name in examination_data["column_data"]:
-        value = examination_data["column_data"][column_name]
-        column = Column.objects.filter(
-            name=column_name,
-            dataset=examination.dataset,
-        ).first()
-        if not column:
-            raise Http404("Column does not exist")
-        Cell.objects.update_or_create(
-            column=column,
-            examination=examination,
-            defaults={"value": value},
-        )
     return JsonResponse(response, status=201)
 
 
@@ -297,7 +249,7 @@ def create_examination_form(request, copsac_id=0, visit_id=0):
         if data["end_date"]:
             enddate = data["end_date"]
 
-        new_mdv = Examination.objects.create(
+        Examination.objects.create(
             dataset=dataset,
             startdate=startdate,
             finishdate=enddate,
@@ -305,9 +257,6 @@ def create_examination_form(request, copsac_id=0, visit_id=0):
             comments=data["comments"],
             visit=visit,
         )
-        cols_to_add = Column.objects.filter(dataset=dataset)
-        for col in cols_to_add:
-            Cell.objects.create(column=col, examination=new_mdv)
 
         return redirect(
             reverse(

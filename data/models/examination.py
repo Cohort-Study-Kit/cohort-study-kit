@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import UniqueConstraint
 from django.urls import reverse
 from django_jsonform.models.fields import JSONField
 from simple_history.models import HistoricalRecords
@@ -130,47 +129,3 @@ class Examination(models.Model):
         return reverse("data:examination-form", args=(self.pk,))
 
     history = HistoricalRecords(table_name="zz_data_examination")
-
-
-class Cell(models.Model):
-    # Foreign Keys
-    column = models.ForeignKey(
-        "data.Column",
-        on_delete=models.CASCADE,
-        default=None,
-        db_index=True,
-    )
-
-    value = models.CharField(
-        default="",
-        db_index=True,
-        blank=True,
-        max_length=2000,
-    )
-
-    examination = models.ForeignKey(
-        "data.Examination",
-        on_delete=models.CASCADE,
-        default=None,
-        db_index=True,
-    )
-
-    def __str__(self):
-        return f"{self.column.name}: {self.value}"
-
-    class Meta:
-        ordering = ["examination"]
-        constraints = [
-            UniqueConstraint(
-                fields=["column", "examination"],
-                name="unique_column_and_examination",
-            ),
-        ]
-        indexes = [
-            models.Index(
-                fields=["column", "examination"],
-                name="main_datapoint",
-            ),
-        ]
-
-    history = HistoricalRecords(table_name="zz_data_cell")

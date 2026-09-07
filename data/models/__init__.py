@@ -1,11 +1,9 @@
-from .dataset import Column, Dataset, DatasetVisitTypeRel
-from .examination import Cell, Examination
+from .dataset import Dataset, DatasetVisitTypeRel
+from .examination import Examination
 from .help import HelpData, HelpDoc
 from .visit import Visit, VisitType
 
 __all__ = [
-    "Cell",
-    "Column",
     "Dataset",
     "DatasetVisitTypeRel",
     "Examination",

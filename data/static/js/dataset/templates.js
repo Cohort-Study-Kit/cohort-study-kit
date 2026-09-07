@@ -201,21 +201,7 @@ ${
           maindataVisit.data,
           formOptions.data_schema,
         )
-      : Object.entries(maindataVisit.column_data)
-          .map(
-            ([column, value]) =>
-              `<div class="p-3 h-100 d-inline-block w-50">
-        <div class="d-flex justify-content-between">
-            <label for="column-${column}" class="form-label">${he.encode(
-              formOptions.columns[column].title,
-            )}</label>
-            <input type="text" id="column-${column}" name="${column}" data-column="${column}" value="${he.encode(
-              value,
-            )}">
-        </div>
-    </div>`,
-          )
-          .join("")
+      : ""
 }
 <hr>
 <div class="row mb-2">
@@ -281,7 +267,6 @@ const elementTemplate = (element, options, maindataVisit) => {
       element.conditions.length &&
       !evaluateConditions(
         maindataVisit.data,
-        maindataVisit.column_data,
         options.externalValues,
         element.conditions,
       )
@@ -353,7 +338,6 @@ const elementTemplate = (element, options, maindataVisit) => {
                         subElement.conditions.length &&
                         !evaluateConditions(
                           maindataVisit.data,
-                          maindataVisit.column_data,
                           options.externalValues,
                           subElement.conditions,
                         )
@@ -696,81 +680,6 @@ const renderContentObject = (
           : he.encode(contentObject.text)
         : ""
       break
-    case "input_question": {
-      let value, warning
-
-      if (maindataVisit) {
-        value = maindataVisit.column_data[contentObject.column]
-        warning = renderOptions.warnings.find((warning) =>
-          warning.variables.includes(contentObject.column),
-        )
-      }
-      if (!value) {
-        value = contentObject.default_value || ""
-      }
-      returnString = `<div class="p-2 h-100${warning ? " warning" : ""}">${
-        contentObject.input_type === "text_input"
-          ? `<div class="${
-              contentObject.placement === "right_of"
-                ? "d-flex justify-content-between"
-                : ""
-            }">
-            ${
-              contentObject.hide_text || !contentObject.text
-                ? ""
-                : `<label class="form-label text-wrap"
-                     title="${he.encode(contentObject.caption)}"
-                     for="question-${contentObject.column}">${he.encode(
-                       contentObject.text,
-                     )}</label>`
-            }
-            <div class="col-auto">
-              <div class="input-group"
-                ${
-                  contentObject.width > 0
-                    ? `style="width: ${contentObject.width}px;"`
-                    : ""
-                }>
-                <input class="form-control"
-                  id="question-${contentObject.column}"
-                  placeholder="${he.encode(contentObject.placeholder)}"
-                  name="question-${contentObject.column}"
-                  data-column="${contentObject.column}"
-                  tabindex="${
-                    contentObject.tabindex > 0
-                      ? contentObject.tabindex + 3
-                      : contentObject.tabindex
-                  }"
-                  type="text"
-                  value="${he.encode(value)}"
-                  ${maindataVisit?.readonly ? "disabled" : ""}>
-              </div>
-            </div>
-          </div>`
-          : `<div class="h-100 d-flex flex-column">
-            ${
-              contentObject.hide_text || !contentObject.text
-                ? ""
-                : `<label class="form-label" for="question-${
-                    contentObject.column
-                  }">${he.encode(contentObject.text)}</label>`
-            }
-            <textarea class="form-control flex-grow-1 "
-              id="question-${contentObject.column}"
-              name="question-${contentObject.column}"
-              data-column="${contentObject.column}"
-              tabindex="${
-                contentObject.tabindex > 0
-                  ? contentObject.tabindex + 3
-                  : contentObject.tabindex
-              }"
-              ${maindataVisit?.readonly ? "disabled" : ""}>${he.encode(
-                value,
-              )}</textarea>
-          </div>`
-      }</div>`
-      break
-    }
     case "data_question": {
       let value, warning
       if (maindataVisit) {
@@ -810,173 +719,6 @@ const renderContentObject = (
         </div>`
       break
     }
-    case "single_column_question": {
-      let warning
-      if (maindataVisit) {
-        const value = maindataVisit.column_data[contentObject.column]
-        warning = renderOptions.warnings.find((warning) =>
-          warning.variables.includes(contentObject.column),
-        )
-        contentObject.options.forEach((option) => {
-          if (option.db_value === value) {
-            option.checked = true
-          } else {
-            option.checked = false
-          }
-        })
-      } else {
-        // For previewing
-        contentObject.options.forEach((option) => {
-          option.checked = false
-        })
-      }
-      returnString = `<div class="p-2${warning ? " warning" : ""}">
-      ${
-        contentObject.input_type === "radio-buttons"
-          ? `${
-              contentObject.hide_text || !contentObject.text
-                ? ""
-                : `<label class="form-label d-block" title="${he.encode(
-                    contentObject.caption,
-                  )}">
-              ${he.encode(contentObject.text)}
-          </label>`
-            }
-
-        ${contentObject.options
-          .map(
-            (option) =>
-              `<div class="form-check${
-                contentObject.options_orientation === "horizontal"
-                  ? " form-check-inline"
-                  : ""
-              }">
-              <label>
-                  <input class="form-check-input"
-                         name="question-${contentObject.column}"
-                         data-column="${contentObject.column}"
-                         tabindex="${
-                           contentObject.tabindex > 0
-                             ? contentObject.tabindex + 3
-                             : contentObject.tabindex
-                         }"
-                         type="radio"
-                         value="${he.encode(option.db_value)}"
-                         ${option.checked ? "checked" : ""}
-                         ${maindataVisit?.readonly ? "disabled" : ""}
-                  >
-                  ${he.encode(option.text)}
-              </label>
-          </div>`,
-          )
-          .join("")}`
-          : `<div class="${
-              contentObject.placement === "right_of"
-                ? "d-flex justify-content-between"
-                : ""
-            }">
-          ${
-            contentObject.hide_text || !contentObject.text
-              ? ""
-              : `<label class="form-label text-wrap" for="question-${
-                  contentObject.column
-                }" title="${he.encode(contentObject.caption)}">
-                ${he.encode(contentObject.text)}
-            </label>`
-          }
-          <div class="col-auto">
-            <div class="input-group"
-              ${
-                contentObject.width > 0
-                  ? `style="width: ${contentObject.width}px;"`
-                  : ""
-              }
-            >
-              <select class="form-select"
-                id="question-${contentObject.column}"
-                name="question-${contentObject.column}"
-                data-column="${contentObject.column}"
-                tabindex="${
-                  contentObject.tabindex > 0
-                    ? contentObject.tabindex + 3
-                    : contentObject.tabindex
-                }"
-                ${
-                  contentObject.width > 0
-                    ? `style="width: ${contentObject.width}px;"`
-                    : ""
-                }
-                ${maindataVisit?.readonly ? "disabled" : ""}>
-                <option value=''></option>
-                ${contentObject.options
-                  .map(
-                    (option) =>
-                      `<option value="${he.encode(option.db_value)}"
-                            ${option.checked ? "selected" : ""}>${
-                              option.text
-                            }</option>`,
-                  )
-                  .join("")}
-              </select>
-            </div>
-          </div>
-        </div>`
-      }
-      </div>`
-      break
-    }
-    case "multi_column_question": {
-      const options = contentObject.options
-      let warning
-      options.forEach((option) => {
-        if (renderOptions.warnings && !warning) {
-          warning = renderOptions.warnings.find((warning) =>
-            warning.variables.includes(option.column),
-          )
-        }
-        if (maindataVisit && maindataVisit.column_data[option.column] === "1") {
-          option.checked = true
-        } else {
-          option.checked = false
-        }
-      })
-      returnString = `<div class="${warning ? "warning " : ""}p-2">
-          ${
-            contentObject.hide_text || !contentObject.text
-              ? ""
-              : `<p class="form-label">${he.encode(contentObject.text)}</p>`
-          }
-          ${options
-            .map(
-              (option) =>
-                `<div class="form-check${
-                  contentObject.options_orientation === "horizontal"
-                    ? " form-check-inline"
-                    : ""
-                }">
-                  <label>
-                      <input class="form-check-input"
-                             id="option-${option.column}"
-                             name="question-${contentObject.column}"
-                             data-column="${option.column}"
-                             tabindex="${
-                               contentObject.tabindex > 0
-                                 ? contentObject.tabindex + 3
-                                 : contentObject.tabindex
-                             }"
-                             type="checkbox"
-                             value="${option.column}"
-                             ${option.checked ? "checked" : ""}
-                             ${maindataVisit.readonly ? "disabled" : ""}
-                        >
-                        ${option.text}
-                    </label>
-              </div>`,
-            )
-            .join("")}
-        </div>`
-      break
-    }
     case "show_value": {
       let value = ""
       if (maindataVisit) {
@@ -1002,7 +744,6 @@ const renderContentObject = (
         )
         value = evaluateCode(
           displayData,
-          maindataVisit.column_data,
           renderOptions.externalValues,
           contentObject.variables,
           contentObject.source,
@@ -1028,17 +769,13 @@ const renderContentObject = (
 const displayType = {
   html: "HTML",
   label: "Label",
-  input_question: "Input Question",
   data_question: "Data Question",
-  single_column_question: "Single Column Question",
-  multi_column_question: "Multiple Column Question",
   show_value: "Show Value",
 }
 
 const warningPropertiesFormTemplate = (warning, value, options) => {
   const availableVariables = getAvailableVariableNames(
     options.data_schema.properties,
-    options.columns,
     value.external_values,
   )
   const warningTestSize = getTextWidthAndHeight(warning.test)
@@ -1059,7 +796,6 @@ const warningPropertiesFormTemplate = (warning, value, options) => {
       }" cols="${warningTestSize.width}" class="label user-code ${
         checkUserCode(
           options.data_schema.properties,
-          options.columns,
           value.external_values,
           warning.test,
         )
@@ -1205,7 +941,6 @@ const externalValuePropertiesFormTemplate = (externalValue, options) => {
 const elementPropertiesFormTemplate = (element, value, options) => {
   const availableVariables = getAvailableVariableNames(
     options.data_schema.properties,
-    options.columns,
     value.external_values,
   )
   let returnString = `<h1>${displayType[element.content.type]}</h1>
@@ -1316,105 +1051,6 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         </label>
       </div>`
       break
-    case "input_question": {
-      returnString += `<div class="mb-3">
-          <label class="form-label requiredField">
-            Text <span class="asteriskField">*</span>
-            <input type="text" name="text" value="${he.encode(
-              element.content.text,
-            )}" maxlength="255" class="text vTextField">
-          </label>
-        </div>
-        <div class="mb-3">
-          <div class="mb-3">
-            <label class="form-check-label">
-              <input type="checkbox" name="hide_text" class="hide_text" ${
-                element.content.hide_text ? "checked" : ""
-              }>
-              Hide text
-            </label>
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label requiredField"> Column <span class="asteriskField">*</span>
-            <select name="column" class="select form-select">
-              <option value=""></option>
-              ${options.columns
-                .map((column) => {
-                  return `<option value="${he.encode(String(column[0]))}" ${
-                    column[0] === element.content.column ? "selected" : ""
-                  }>${he.encode(column[1])}</option>`
-                })
-                .join("")}
-            </select>
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">
-            Caption
-            <input type="text" name="caption" class="caption vTextField" value="${he.encode(
-              element.content.caption,
-            )}">
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label requiredField"> Input type <span class="asteriskField">*</span>
-            <select name="input_type" class="select form-select">
-              <option value="text_input" ${
-                element.content.input_type === "text_input" ? "selected" : ""
-              }>Text input</option>
-              <option value="textarea" ${
-                element.content.input_type === "textarea" ? "selected" : ""
-              }>Textarea</option>
-            </select>
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label requiredField"> Placement <span class="asteriskField">*</span>
-            <select name="placement" class="select form-select">
-              <option value="below" ${
-                element.content.placement === "below" ? "selected" : ""
-              }>Below</option>
-              <option value="right_of" ${
-                element.content.placement === "right_of" ? "selected" : ""
-              }>Right of</option>
-            </select>
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label requiredField">
-            Width <span class="asteriskField">*</span>
-            <input type="number" name="width" value="${
-              element.content.width
-            }" class="width vTextField" title="The size of the element in number of columns. 0 equals automatic sizing.">
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label requiredField">
-            Tabindex <span class="asteriskField">*</span>
-            <input type="number" name="tabindex" value="${
-              element.content.tabindex
-            }" class="tabindex vTextField">
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">
-            Placeholder
-            <input type="text" name="placeholder" value="${he.encode(
-              element.content.placeholder || "",
-            )}" maxlength="255" class="placeholder vTextField">
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">
-            Default value
-            <input type="text" name="default_value" value="${he.encode(
-              element.content.default_value,
-            )}" maxlength="255" class="default_value vTextField">
-          </label>
-        </div>`
-      break
-    }
     case "data_question": {
       const schemaProp =
         (options.data_schema.properties || {})[element.content.property] || {}
@@ -1505,249 +1141,6 @@ const elementPropertiesFormTemplate = (element, value, options) => {
         }`
       break
     }
-    case "single_column_question": {
-      returnString += `<div class="flex-container">
-        <label>
-          Text*:
-          <input type="text" name="text" class="text vTextField" maxlength="1000" value="${he.encode(
-            element.content.text,
-          )}">
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Hide text:
-          <input type="checkbox" name="hide_text" class="hide_text" ${
-            element.content.hide_text ? "checked" : ""
-          }>
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Column*:
-          <select class="column" name="column">
-            <option value=""></option>
-            ${options.columns
-              .map(
-                (column) =>
-                  `<option value="${he.encode(String(column[0]))}" ${
-                    column[0] === element.content.column ? "selected" : ""
-                  }>${he.encode(column[1])}</option>`,
-              )
-              .join("")}
-          </select>
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Caption:
-          <input type="text" name="caption" class="caption vTextField" maxlength="1000" value="${he.encode(
-            element.content.caption,
-          )}">
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Input type*:
-          <select class="input_type" name="input_type">
-            <option value=""></option>
-            <option value="radio-buttons" ${
-              element.content.input_type === "radio-buttons" ? "selected" : ""
-            }>Radio buttons</option>
-            <option value="select" ${
-              element.content.input_type === "select" ? "selected" : ""
-            }>Select</option>
-          </select>
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>Placement*:
-          <select class="placement" name="placement">
-            <option value=""></option>
-            <option value="below" ${
-              element.content.placement === "below" ? "selected" : ""
-            }>Below</option>
-            <option value="right_of" ${
-              element.content.placement === "right_of" ? "selected" : ""
-            }>Right of</option>
-          </select>
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Width*:
-          <input type="number" name="width" class="width vTextField" value="${
-            element.content.width
-          }" title="The size of the element in number of columns. 0 equals automatic sizing.">
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Tab index*:
-          <input type="number" name="tabindex" class="tabindex vTextField" value="${
-            element.content.tabindex
-          }">
-        </label>
-
-      </div>
-      <div class="flex-container">
-        <label>
-          Options orientation*:
-          <select class="options_orientation" name="options_orientation">
-            <option value=""></option>
-            <option value="vertical" ${
-              element.content.options_orientation === "vertical"
-                ? "selected"
-                : ""
-            }>Vertical</option>
-            <option value="horizontal" ${
-              element.content.options_orientation === "horizontal"
-                ? "selected"
-                : ""
-            }>Horizontal</option>
-          </select>
-        </label>
-      </div>
-      <div id="options-wrapper">
-        <div id="options">
-          ${element.content.options.map(
-            (option) =>
-              `<div class="option-form-wrapper">
-              <div class="d-flex">
-                <div>
-                  <button class="btn btn-sm btn-light option-sort-up" type="button">↑</button>
-                </div>
-                <div>
-                  <button class="btn btn-sm btn-light option-sort-down" type="button">↓</button>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label requiredField">
-                    Choice<span class="asteriskField">*</span>
-                    <input type="text" name="option-text" value="${he.encode(
-                      option.text,
-                    )}" class="vTextField">
-                  </label>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">
-                    Value
-                    <input type="text" name="option-db_value" value="${he.encode(
-                      option.db_value,
-                    )}" class="vTextField">
-                  </label>
-                </div>
-                <div class="d-flex align-items-center">
-                  <button class="inline-deletelink option-delete" type="button">x</button>
-                </div>
-              </div>
-            </div>`,
-          )}
-        </div>
-        <p class="text-muted text-center">
-          <small>Minimum of two options required.</small>
-        </p>
-        <button class="button btn-primary option-db_value-add">
-          + Add option
-        </button>
-      </div>`
-      break
-    }
-    case "multi_column_question": {
-      returnString += `<div class="flex-container">
-        <label>
-          Text*:
-          <input type="text" name="text" class="text vTextField" maxlength="1000" value="${he.encode(
-            element.content.text,
-          )}">
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Hide text:
-          <input type="checkbox" name="hide_text" class="hide_text" ${
-            element.content.hide_text ? "checked" : ""
-          }>
-        </label>
-      </div>
-      <div class="flex-container">
-        <label>
-          Tab index*:
-          <input type="number" name="tabindex" class="tabindex vTextField" value="${
-            element.content.tabindex
-          }">
-        </label>
-
-      </div>
-      <div class="flex-container">
-        <label>
-          Options orientation*:
-          <select class="options_orientation" name="options_orientation">
-            <option value=""></option>
-            <option value="vertical" ${
-              element.content.options_orientation === "vertical"
-                ? "selected"
-                : ""
-            }>Vertical</option>
-            <option value="horizontal" ${
-              element.content.options_orientation === "horizontal"
-                ? "selected"
-                : ""
-            }>Horizontal</option>
-          </select>
-        </label>
-      </div>
-      <div id="options-wrapper">
-        <div id="options">
-          ${element.content.options.map(
-            (option) =>
-              `<div class="option-form-wrapper">
-              <div class="d-flex">
-                <div>
-                  <button class="btn btn-sm btn-light option-sort-up" type="button">↑</button>
-                </div>
-                <div>
-                  <button class="btn btn-sm btn-light option-sort-down" type="button">↓</button>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label requiredField">
-                    Choice<span class="asteriskField">*</span>
-                    <input type="text" name="option-text" value="${he.encode(
-                      option.text,
-                    )}" class="vTextField">
-                  </label>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">
-                    Column
-                    <select class="column" name="option-column">
-                      <option value=""></option>
-                      ${options.columns
-                        .map(
-                          (column) =>
-                            `<option value="${option.column}" ${
-                              column[0] === option.column ? "selected" : ""
-                            }>${he.encode(column[1])}</option>`,
-                        )
-                        .join("")}
-                    </select>
-                  </label>
-                </div>
-                <div class="d-flex align-items-center">
-                  <button class="inline-deletelink option-delete" type="button">x</button>
-                </div>
-              </div>
-            </div>`,
-          )}
-        </div>
-        <p class="text-muted text-center">
-          <small>Minimum of two options required.</small>
-        </p>
-        <button class="button btn-primary option-column-add">
-          + Add option
-        </button>
-      </div>`
-      break
-    }
     case "show_value": {
       const contentSourceSize = getTextWidthAndHeight(element.content.source)
       returnString += `<div class="mb-3">
@@ -1776,7 +1169,6 @@ const elementPropertiesFormTemplate = (element, value, options) => {
           }" cols="${contentSourceSize.width}" class="source user-code ${
             checkUserCode(
               options.data_schema.properties,
-              options.columns,
               value.external_values,
               element.content.source,
             )
@@ -1856,7 +1248,6 @@ const elementPropertiesFormTemplate = (element, value, options) => {
                 }" cols="${conditionCodeSize.width}" class="code user-code ${
                   checkUserCode(
                     options.data_schema.properties,
-                    options.columns,
                     value.external_values,
                     condition.code,
                   )
@@ -1913,41 +1304,14 @@ export const menuItems = (datasetForm) => {
         datasetForm.options.onChange()
       },
     },
-  ]
-  if (datasetForm.hasDataSchema) {
-    menuItems.push({
+    {
       label: "Question",
       callback: (_event) => {
         datasetForm.addElement("data_question")
         datasetForm.render()
         datasetForm.options.onChange()
       },
-    })
-  } else {
-    menuItems.push({
-      label: "Input Question",
-      callback: (_event) => {
-        datasetForm.addElement("input_question")
-        datasetForm.render()
-        datasetForm.options.onChange()
-      },
-    })
-    menuItems.push({
-      label: "Single Column Question",
-      callback: (_event) => {
-        datasetForm.addElement("single_column_question")
-        datasetForm.render()
-        datasetForm.options.onChange()
-      },
-    })
-    menuItems.push({
-      label: "Multiple Column Question",
-      callback: (_event) => {
-        datasetForm.addElement("multi_column_question")
-        datasetForm.render()
-        datasetForm.options.onChange()
-      },
-    })
-  }
+    },
+  ]
   return menuItems
 }

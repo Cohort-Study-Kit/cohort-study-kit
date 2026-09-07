@@ -9,7 +9,6 @@ export class DatasetFormWidget {
   constructor(container, options) {
     this.container = container
     this.options = options
-    this.hasDataSchema = Boolean(options.data_schema.properties)
     this.value = null
     this.selectedElement = null
     this.selectedWarning = null
@@ -274,11 +273,6 @@ export class DatasetFormWidget {
         this.selectedElement.content.options.push({ text: "", db_value: "" })
         this.options.onChange()
         this.render()
-      } else if (event.target.closest("button.option-column-add")) {
-        event.preventDefault()
-        this.selectedElement.content.options.push({ text: "", column: "" })
-        this.options.onChange()
-        this.render()
       } else if (event.target.closest("button.condition-add")) {
         event.preventDefault()
         this.selectedElement.conditions.push({
@@ -384,13 +378,6 @@ export class DatasetFormWidget {
         contentObject.options[position].db_value = event.target.value
         this.options.onChange()
         this.renderGridContent()
-      } else if (name === "option-column") {
-        const position = countPreviousSiblings(
-          event.target.closest("div.option-form-wrapper"),
-        )
-        contentObject.options[position].column = parseInt(event.target.value)
-        this.options.onChange()
-        this.renderGridContent()
       } else if (name === "condition-code") {
         const position = countPreviousSiblings(
           event.target.closest("div.condition-form-wrapper"),
@@ -409,7 +396,6 @@ export class DatasetFormWidget {
           "placeholder",
           "default_value",
           "text",
-          "column",
           "property",
           "tag",
         ].includes(name)
@@ -540,7 +526,6 @@ export class DatasetFormWidget {
           selectedElement: this.selectedElement,
           selectedWarning: this.selectedWarning,
           selectedExternalValue: this.selectedExternalValue,
-          hasDataSchema: this.hasDataSchema,
         },
         this.options,
       ),

@@ -1179,25 +1179,32 @@ class InteractionTest(VerboseLiveServerTestCase):
             EC.url_contains("/data/examination/"),
         )
 
-        all_html_row_elements = self.driver.find_elements(
-            By.XPATH,
-            '//div[@id="survey-form-wrapper"]//div[@class="row mb-2"]',
-        )
-
-        # First element (index 0) shall be date/status row, Last row (index -1) shall be comments row.
-        startdate = (
-            all_html_row_elements[0]
-            .find_element(By.CSS_SELECTOR, "date-input[name=startdate]")
-            .get_attribute("value")
-        )
+        # The date/status row is still a div.row.mb-2, the comment row as
+        # well. The data fields themselves are rendered by
+        # renderJsonSchemaForm inside div.p-2.d-flex containers.
+        startdate = self.driver.find_element(
+            By.CSS_SELECTOR,
+            "div#survey-form-wrapper date-input[name=startdate]",
+        ).get_attribute("value")
         self.assertEqual("2022-01-01", startdate)
 
-        comments = all_html_row_elements[-1].find_element(By.XPATH, ".//textarea").text
+        comments = self.driver.find_element(
+            By.CSS_SELECTOR,
+            "div#survey-form-wrapper textarea#id_comments",
+        ).text
         self.assertEqual("Create examination.", comments)
 
-        # Now we inspect the data rows, and they shall be empty.
-        for element in all_html_row_elements[1:-1]:
-            data = element.find_element(By.XPATH, ".//input").get_attribute("value")
+        # Now we inspect the data field rows, and they shall be empty.
+        data_field_containers = self.driver.find_elements(
+            By.CSS_SELECTOR,
+            "div#survey-form-wrapper div.p-2.d-flex",
+        )
+        self.assertTrue(data_field_containers)
+        for element in data_field_containers:
+            data = element.find_element(
+                By.XPATH,
+                ".//input | .//select",
+            ).get_attribute("value")
             self.assertEqual("", data)
 
         checkbox = self.driver.find_element(
@@ -1270,10 +1277,6 @@ class InteractionTest(VerboseLiveServerTestCase):
         self.assertIn("Screen Time", form_header)
 
         # Save current visible data (except the header and comments data) on form-page
-        all_html_row_elements = self.driver.find_elements(
-            By.CSS_SELECTOR,
-            "div#survey-form-wrapper div.row.mb-2, div#survey-form-wrapper div.row.mb-3",
-        )
         old_form_data = [
             element.get_attribute("value")
             for element in self.driver.find_elements(
@@ -1303,21 +1306,31 @@ class InteractionTest(VerboseLiveServerTestCase):
         year_input = end_date_shadow_root.find_element(By.CSS_SELECTOR, "input#year")
         year_input.click()
         year_input.send_keys("2019")
+        # The JSON-schema renderer marks fields with data-path. Grid forms
+        # (data_question elements) use the bare property name, while the
+        # auto-generated form for datasets without a form prefixes the root
+        # path with a space, so match both variants.
         turned_off_sun_thu_field = self.driver.find_element(
-            By.ID,
-            "question-turned_off_sun_thu",
+            By.CSS_SELECTOR,
+            "[data-path=' turned_off_sun_thu'], [data-path='turned_off_sun_thu']",
         )
         turned_off_sun_thu_field.clear()
         turned_off_sun_thu_field.click()
         turned_off_sun_thu_field.send_keys("21:00")
 
         deviceinroom_field = Select(
-            self.driver.find_element(By.ID, "question-deviceinroom"),
+            self.driver.find_element(
+                By.CSS_SELECTOR,
+                "[data-path=' deviceinroom'], [data-path='deviceinroom']",
+            ),
         )
         deviceinroom_field.select_by_visible_text("0")
 
         gaming_dev_fri_sun_field = Select(
-            self.driver.find_element(By.ID, "question-gaming_dev_fri_sun"),
+            self.driver.find_element(
+                By.CSS_SELECTOR,
+                "[data-path=' gaming_dev_fri_sun'], [data-path='gaming_dev_fri_sun']",
+            ),
         )
         gaming_dev_fri_sun_field.select_by_visible_text("Max 6")
 

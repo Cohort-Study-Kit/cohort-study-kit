@@ -93,36 +93,18 @@ export const countPreviousSiblings = (element) => {
   return count
 }
 
-export const getAvailableVariableNames = (
-  properties,
-  columns,
-  externalValues,
-) => {
-  if (properties && Object.keys(properties).length) {
-    // Use data schema
-    return Object.keys(properties)
-      .concat(
-        externalValues.map((externalValue) =>
-          renderExternalValueName(externalValue),
-        ),
-      )
-      .toSorted()
-  } else {
-    // Use columns
-    return columns
-      .map((column) => column[0])
-      .concat(
-        externalValues.map((externalValue) =>
-          renderExternalValueName(externalValue),
-        ),
-      )
-      .toSorted()
-  }
+export const getAvailableVariableNames = (properties, externalValues) => {
+  return Object.keys(properties || {})
+    .concat(
+      externalValues.map((externalValue) =>
+        renderExternalValueName(externalValue),
+      ),
+    )
+    .toSorted()
 }
 
 export const evaluateConditions = (
   propertyData,
-  columnData,
   externalValues,
   conditions,
 ) => {
@@ -130,7 +112,6 @@ export const evaluateConditions = (
     .map((condition) => {
       return evaluateCode(
         propertyData,
-        columnData,
         externalValues,
         condition.variables,
         condition.code,
@@ -146,15 +127,9 @@ export const formatDate = (date) => {
   return `${date.slice(8, 10)}-${date.slice(5, 7)}-${date.slice(0, 4)}`
 }
 
-export const checkUserCode = (
-  properties,
-  columns,
-  externalValues,
-  userCode,
-) => {
+export const checkUserCode = (properties, externalValues, userCode) => {
   const availableVariables = getAvailableVariableNames(
     properties,
-    columns,
     externalValues,
   )
 
@@ -352,7 +327,6 @@ export const findCodeVariables = (userCode) => {
 
 export const evaluateCode = (
   propertyData,
-  columnData,
   externalValues,
   variables,
   userCode,
@@ -379,13 +353,6 @@ export const evaluateCode = (
       } else {
         if (Object.prototype.hasOwnProperty.call(propertyData, variable)) {
           value = JSON.stringify(propertyData[variable])
-        } else if (Object.prototype.hasOwnProperty.call(columnData, variable)) {
-          value = columnData[variable]
-          value = isNaN(value)
-            ? `"${value}"`
-            : value.length
-              ? parseFloat(value)
-              : String(Boolean(value))
         } else {
           notFoundVariables = true
           return ""

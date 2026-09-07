@@ -18,33 +18,23 @@ export class ExaminationForm {
   whenReady() {
     this.form = window.form
     this.formOptions = window.formOptions
-    this.hasDataSchema = Boolean(this.formOptions.data_schema.properties)
     this.formOptions.warnings = []
     this.examination = window.examination
-    if (this.hasDataSchema) {
-      // prefill data with empty values
-      this.examination.data = Object.fromEntries(
-        Object.entries(this.formOptions.data_schema.properties).map(
-          ([key, schema]) => {
-            const value = this.examination.data[key]
-            if (schema.type === "array") {
-              return [key, value || []]
-            }
-            if (schema.type === "string") {
-              return [key, value || ""]
-            }
-            return [key, value ?? null]
-          },
-        ),
-      )
-    } else {
-      this.examination.column_data = Object.fromEntries(
-        Object.keys(this.formOptions.columns).map((key) => [
-          key,
-          this.examination.column_data[key] || "",
-        ]),
-      )
-    }
+    // prefill data with empty values
+    this.examination.data = Object.fromEntries(
+      Object.entries(this.formOptions.data_schema.properties).map(
+        ([key, schema]) => {
+          const value = this.examination.data[key]
+          if (schema.type === "array") {
+            return [key, value || []]
+          }
+          if (schema.type === "string") {
+            return [key, value || ""]
+          }
+          return [key, value ?? null]
+        },
+      ),
+    )
     this.shrinkGrid()
     this.render()
     this.bind()
@@ -71,7 +61,6 @@ export class ExaminationForm {
     this.formOptions.warnings = this.form.warnings.filter((warning) =>
       evaluateCode(
         this.examination.data,
-        this.examination.column_data,
         this.formOptions.external_values,
         warning.variables,
         warning.test,
@@ -224,23 +213,35 @@ export class ExaminationForm {
       return
     }
     this.handlingChange = true
-    const column = event.target.dataset.column
     const path = event.target.dataset.path?.trim()
 
     const choice = event.target.dataset.choice
     if (choice !== undefined && path) {
-      // Array+choices checkbox: toggle choice in/out of the array property
-      if (!Array.isArray(this.examination.data[path])) {
-        this.examination.data[path] = []
+      // Array+choices checkbox: toggle the choice in/out of the array at
+      // the (possibly nested) path in examination.data.
+      const pathParts = path.split(" ")
+      let destination = this.examination.data
+      let schema = this.formOptions.data_schema
+      pathParts.forEach((pathPart) => {
+        schema = isNaN(pathPart) ? schema.properties[pathPart] : schema.items
+        const pathSelector = isNaN(pathPart) ? pathPart : parseInt(pathPart)
+        if (!destination[pathSelector]) {
+          destination[pathSelector] =
+            schema.type === "array" ? [] : schema.type === "object" ? {} : ""
+        }
+        destination = destination[pathSelector]
+      })
+      if (!Array.isArray(destination)) {
+        destination = []
       }
       if (event.target.checked) {
-        if (!this.examination.data[path].includes(choice)) {
-          this.examination.data[path].push(choice)
+        if (!destination.includes(choice)) {
+          destination.push(choice)
         }
       } else {
-        const idx = this.examination.data[path].indexOf(choice)
+        const idx = destination.indexOf(choice)
         if (idx !== -1) {
-          this.examination.data[path].splice(idx, 1)
+          destination.splice(idx, 1)
         }
       }
       event.preventDefault()
@@ -249,17 +250,6 @@ export class ExaminationForm {
       return
     }
 
-    if (column) {
-      // If the target is a checkbox, return 1 if it is checked, 0 otherwise
-      // If the target is not a checkbox, return the value
-      const value =
-        event.target.type === "checkbox"
-          ? event.target.checked
-            ? "1"
-            : "0"
-          : event.target.value
-      this.examination.column_data[column] = value
-    }
     if (path) {
       // If the target is a checkbox, return 1 if it is checked, 0 otherwise
       // If the target is not a checkbox, return the value
@@ -345,6 +335,9 @@ export class ExaminationForm {
   }
 
   submit() {
+    // The legacy column_data key is no longer used by the server; drop it
+    // from the payload if the backend still includes it.
+    delete this.examination.column_data
     return postJson(`/api/save_examination/`, {
       examination: this.examination,
     }).then(() => {
