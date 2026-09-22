@@ -213,6 +213,7 @@ export class ExaminationForm {
       return
     }
     this.handlingChange = true
+    let deferredRender = false
     const path = event.target.dataset.path?.trim()
 
     const choice = event.target.dataset.choice
@@ -273,6 +274,12 @@ export class ExaminationForm {
         destination = destination[pathSelector]
       })
       schema = isNaN(name) ? schema.properties[name] : schema.items
+      if (
+        event.type === "input" &&
+        ["integer", "number"].includes(schema.type)
+      ) {
+        deferredRender = true
+      }
       if (schema.type === "integer") {
         value = parseInt(value)
       } else if (schema.type === "number") {
@@ -330,7 +337,9 @@ export class ExaminationForm {
       }
     }
     event.preventDefault()
-    this.render()
+    if (!deferredRender) {
+      this.render()
+    }
     this.handlingChange = false
   }
 
