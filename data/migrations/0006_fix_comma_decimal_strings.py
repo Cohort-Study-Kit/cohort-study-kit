@@ -2,8 +2,20 @@ import re
 
 from django.db import migrations
 
-# A single comma between digits, e.g. "1,23" but not "1,2,3" or "a,b"
-COMMA_NUMBER_RE = re.compile(r"^\d+,\d+$")
+# One comma separating an optional integer part and fractional digits, with an
+# optional minus sign: "1,23", "-1,23", ",5" and "-,5" -- but not "1,2,3"
+# or "1,5x". ",5" and "-,5" get a "0" inserted after the sign/comma.
+COMMA_NUMBER_RE = re.compile(r"^(-?)(\d*),(\d+)$")
+
+
+def to_number(value):
+    match = COMMA_NUMBER_RE.match(value)
+    if match is None:
+        return None
+    sign, integer_part, fraction_part = match.groups()
+    if not integer_part:
+        integer_part = "0"
+    return float(f"{sign}{integer_part}.{fraction_part}")
 
 
 def convert_comma_numbers(apps, schema_editor):
@@ -21,45 +33,33 @@ def convert_comma_numbers(apps, schema_editor):
         for ds in Dataset.objects.all()
     }
 
-    def convert(queryset, update_history):
+    def convert(queryset):
         for exam in queryset.iterator():
             fields = number_fields.get(exam.dataset_id)
             data = exam.data
             if not fields or not isinstance(data, dict):
                 continue
-            old_data = dict(data)
             changed = {}
             for field in fields:
                 value = data.get(field)
-                if isinstance(value, str) and COMMA_NUMBER_RE.match(value):
-                    data[field] = float(value.replace(",", "."))
-                    changed[field] = value
+                if isinstance(value, str):
+                    number = to_number(value)
+                    if number is not None:
+                        data[field] = number
+                        changed[field] = value
             if changed:
+                # Signals are not active during migrations, so saving the live
+                # examination does not touch the history table; history rows
+                # are converted directly by the second convert() call below.
                 exam.save(update_fields=["data"])
-                # Signals are not active during migrations, so update the
-                # latest history row manually to keep the audit trail in sync.
-                if update_history:
-                    latest = (
-                        HistoricalExamination.objects.filter(
-                            examination_id=exam.pk,
-                        )
-                        .order_by("-history_date", "-pk")
-                        .first()
-                    )
-                    if latest is not None and latest.data == old_data:
-                        latest.data = data
-                        latest.save(update_fields=["data"])
                 print(
                     f"Converted examination {exam.pk} (dataset {exam.dataset_id}, "
                     f"visit {exam.visit_id}): "
                     + ", ".join(f"{f}={v!r}" for f, v in changed.items()),
                 )
 
-    convert(Examination.objects.exclude(dataset=None), update_history=False)
-    convert(
-        HistoricalExamination.objects.exclude(dataset=None),
-        update_history=False,
-    )
+    convert(Examination.objects.exclude(dataset=None))
+    convert(HistoricalExamination.objects.exclude(dataset=None))
 
 
 def revert_comma_numbers(apps, schema_editor):
