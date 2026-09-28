@@ -1,21 +1,40 @@
 import re
+from decimal import Decimal, InvalidOperation
 
 from django.db import migrations
 
-# One comma separating an optional integer part and fractional digits, with an
-# optional minus sign: "1,23", "-1,23", ",5" and "-,5" -- but not "1,2,3"
-# or "1,5x". ",5" and "-,5" get a "0" inserted after the sign/comma.
-COMMA_NUMBER_RE = re.compile(r"^(-?)(\d*),(\d+)$")
+# Whitespace around the value is ignored. Covers plain integers ("-5", "007")
+# and numbers with a single decimal separator (period or comma), where the
+# fractional part must have at least one digit: "1.23", "1,23", "-1.23",
+# ",5", "-.5" -- but not "1,2,3", "1.2.3", "5," or "1,5x". A value is only
+# converted when its float representation preserves the exact numeric value;
+# anything else is left untouched.
+DECIMAL_RE = re.compile(r"^(-?)(\d*)([.,])(\d+)$")
+INTEGER_RE = re.compile(r"^-?\d+$")
 
 
 def to_number(value):
-    match = COMMA_NUMBER_RE.match(value)
-    if match is None:
+    value = value.strip()
+    match = DECIMAL_RE.match(value)
+    if match:
+        sign, integer_part, _, fraction_part = match.groups()
+        if not integer_part:
+            integer_part = "0"
+        text = f"{sign}{integer_part}.{fraction_part}"
+    elif INTEGER_RE.match(value):
+        text = value
+    else:
         return None
-    sign, integer_part, fraction_part = match.groups()
-    if not integer_part:
-        integer_part = "0"
-    return float(f"{sign}{integer_part}.{fraction_part}")
+    try:
+        decimal_value = Decimal(text)
+    except InvalidOperation:
+        return None
+    number = float(text)
+    if Decimal(str(number)) != decimal_value:
+        # More significant digits than a float can represent; converting
+        # would silently change the numeric value.
+        return None
+    return number
 
 
 def convert_comma_numbers(apps, schema_editor):
