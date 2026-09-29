@@ -7,8 +7,10 @@ from django.db import migrations
 # and numbers with a single decimal separator (period or comma), where the
 # fractional part must have at least one digit: "1.23", "1,23", "-1.23",
 # ",5", "-.5" -- but not "1,2,3", "1.2.3", "5," or "1,5x". A value is only
-# converted when its float representation preserves the exact numeric value;
-# anything else is left untouched.
+# converted when its float representation preserves the exact numeric value.
+# Empty and whitespace-only strings become null -- the representation the
+# frontend itself produces for a cleared number field. Anything else that
+# cannot be converted is left untouched.
 DECIMAL_RE = re.compile(r"^(-?)(\d*)([.,])(\d+)$")
 INTEGER_RE = re.compile(r"^-?\d+$")
 
@@ -65,6 +67,9 @@ def convert_comma_numbers(apps, schema_editor):
                     number = to_number(value)
                     if number is not None:
                         data[field] = number
+                        changed[field] = value
+                    elif not value.strip():
+                        data[field] = None
                         changed[field] = value
             if changed:
                 # Signals are not active during migrations, so saving the live
