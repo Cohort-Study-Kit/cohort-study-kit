@@ -22,7 +22,7 @@ export class ExaminationForm {
     this.examination = window.examination
     // prefill data with empty values
     this.examination.data = Object.fromEntries(
-      Object.entries(this.formOptions.data_schema.properties).map(
+      Object.entries(this.formOptions.data_schema.properties || {}).map(
         ([key, schema]) => {
           const value = this.examination.data[key]
           if (schema.type === "array") {
